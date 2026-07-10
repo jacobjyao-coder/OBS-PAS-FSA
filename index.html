@@ -1,0 +1,1017 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>OBS PAS + FSA</title>
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#545e28">
+    <link rel="apple-touch-icon" href="icon-512.png">
+    
+    <style>
+        /* CSS Variables defining the original color palette */
+        :root {
+            --slate-50: #f8fafc; --slate-100: #f1f5f9; --slate-200: #e2e8f0; --slate-300: #cbd5e1;
+            --slate-400: #94a3b8; --slate-500: #64748b; --slate-600: #475569; --slate-700: #334155;
+            --slate-800: #1e293b; --slate-900: #0f172a;
+            --blue-50: #eff6ff; --blue-100: #dbeafe; --blue-200: #bfdbfe; --blue-500: #3b82f6; --blue-600: #2563eb; --blue-700: #1d4ed8; --blue-800: #1e40af;
+            --red-50: #fef2f2; --red-100: #fee2e2; --red-200: #fecaca; --red-500: #ef4444; --red-600: #dc2626; --red-700: #b91c1c; --red-800: #991b1b;
+            --green-50: #f0fdf4; --green-100: #dcfce7; --green-200: #bbf7d0; --green-600: #16a34a; --green-700: #15803d; --green-900: #14532d;
+            --yellow-400: #facc15; --yellow-500: #eab308;
+            --cyan-300: #67e8f9; 
+            --amber-50: #fffbeb; --amber-200: #fde68a; --amber-500: #f59e0b; --amber-900: #78350f;
+            --rose-500: #f43f5e; --indigo-500: #6366f1; --violet-500: #8b5cf6; --teal-500: #14b8a6;
+            
+            /* OBS Brand Colors */
+            --brand-green: #545e28;
+            --brand-green-hover: #464f21;
+            --brand-green-dark: #3a421a;
+            --brand-green-light: #e9ebd8; 
+            --brand-yellow: #e6b320;
+            --brand-yellow-hover: #cfa11c;
+            --brand-yellow-light: #fdf2cd;
+        }
+
+        /* Base & Resets */
+        *, *::before, *::after { box-sizing: border-box; }
+        body { 
+            margin: 0; 
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; 
+            background: var(--slate-100); 
+            color: var(--slate-900); 
+            padding-bottom: max(90px, env(safe-area-inset-bottom)); 
+            -webkit-font-smoothing: antialiased; 
+        }
+        h1, h2, h3, p, ul { margin: 0; padding: 0; }
+        input, textarea, button, select { font-family: inherit; }
+        input:focus, textarea:focus, select:focus { outline: 2px solid var(--brand-green); outline-offset: -2px; border-radius: 4px; }
+        
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        .custom-checkbox { width: 1.25rem; height: 1.25rem; accent-color: var(--brand-green); cursor: pointer; flex-shrink: 0; }
+        
+        /* Layout */
+        .app-header { background: var(--brand-green); color: white; padding: 1rem; position: sticky; top: 0; z-index: 10; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
+        .header-title { display: flex; align-items: center; gap: 0.75rem; }
+        .header-title span { font-size: clamp(1rem, 4vw, 1.25rem); font-style: normal; flex-shrink: 0; }
+        .header-title h1 { font-size: clamp(1rem, 4.8vw, 1.8rem); font-weight: 700; font-style: italic; letter-spacing: -0.025em; white-space: nowrap; }
+        
+        .btn-reset { display: flex; align-items: center; gap: 0.25rem; background: var(--brand-yellow); color: black; border: none; padding: 0.375rem 0.75rem; border-radius: 0.25rem; font-size: 0.625rem; font-weight: 900; text-transform: uppercase; letter-spacing: 0.05em; cursor: pointer; transition: background-color 0.2s; }
+        .btn-reset:hover { background: var(--brand-yellow-hover); }
+        .app-main { max-width: 42rem; margin: 0 auto; padding: 1rem; }
+        
+        /* Tabs */
+        .tab-content { display: none; }
+        .tab-content.active { display: block; animation: fadeIn 0.3s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        
+        /* Utilities */
+        .space-y-8 > * + * { margin-top: 2rem; }
+        .space-y-6 > * + * { margin-top: 1.5rem; }
+        .space-y-4 > * + * { margin-top: 1rem; }
+        .space-y-3 > * + * { margin-top: 0.75rem; }
+        .mb-2 { margin-bottom: 0.5rem; }
+        .mb-4 { margin-bottom: 1rem; }
+        .mb-6 { margin-bottom: 1.5rem; }
+        .mt-1 { margin-top: 0.25rem; }
+        .mt-4 { margin-top: 1rem; }
+        .text-2xl { font-size: 1.5rem; }
+        .mr-2 { margin-right: 0.5rem; }
+        .font-black { font-weight: 900; }
+        .font-bold { font-weight: 700; }
+        .uppercase { text-transform: uppercase; }
+        .italic { font-style: italic; }
+        .opacity-70 { opacity: 0.7; }
+        .divider { border: 0; border-top: 1px solid var(--slate-300); margin: 0.5rem 0; }
+        
+        /* Section Headers */
+        .section-header { display: flex; align-items: center; gap: 0.5rem; border-bottom: 2px solid var(--brand-green); margin-bottom: 1rem; padding-bottom: 0.5rem; }
+        .section-header h2 { font-size: 1.25rem; font-weight: 900; text-transform: uppercase; color: var(--slate-800); }
+        
+        /* Cards & Inputs */
+        .card { background: white; padding: 0.75rem; border-radius: 0.5rem; border: 1px solid var(--slate-200); box-shadow: 0 1px 2px 0 rgba(0,0,0,0.05); }
+        .card-p4 { padding: 1rem; }
+        .input-label { display: block; font-size: 0.75rem; font-weight: 700; color: var(--slate-500); text-transform: uppercase; margin-bottom: 0.25rem; }
+        .input { width: 100%; padding: 0.5rem; background: var(--slate-50); border: 1px solid var(--slate-200); border-radius: 0.25rem; font-size: 1rem; color: var(--slate-900); }
+        .input-p3 { padding: 0.75rem; }
+        .input-h10 { height: 2.5rem; }
+        .grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; }
+        .grid-gap-2 { gap: 0.5rem; }
+        .flex { display: flex; }
+        .items-center { align-items: center; }
+        .gap-3 { gap: 0.75rem; }
+        .w-full { width: 100%; }
+        
+        /* Scene Section */
+        .scene-item { display: flex; align-items: center; gap: 1rem; padding: 0.75rem; background: white; border-radius: 0.5rem; border: 1px solid var(--slate-200); box-shadow: 0 1px 2px 0 rgba(0,0,0,0.05); cursor: pointer; }
+        .scene-label { font-size: 1rem; font-weight: 500; color: var(--slate-800); }
+        .scene-label.checked { color: var(--brand-green); text-decoration: line-through; text-decoration-thickness: 2px; }
+        .critical-box { background: var(--brand-green-light); padding: 1rem; border-radius: 0.5rem; border: 1px solid var(--brand-green); margin-top: 1rem; }
+        .critical-title { font-size: 0.875rem; font-weight: 900; color: var(--brand-green); text-transform: uppercase; letter-spacing: 0.025em; margin-bottom: 0.75rem; }
+        .critical-row { display: flex; align-items: center; gap: 0.75rem; font-weight: 700; color: var(--slate-700); cursor: pointer; }
+        
+        /* Primary Section */
+        .alert-critical { background: var(--red-600); color: white; padding: 1rem; border-radius: 0.5rem; border-left: 8px solid var(--red-800); box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); margin-bottom: 1.5rem; display: flex; align-items: flex-start; gap: 0.75rem; animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
+        .primary-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--slate-100); padding-bottom: 0.5rem; margin-bottom: 0.5rem; }
+        .primary-title { font-size: 1rem; font-weight: 700; color: var(--slate-900); }
+        .badge { font-size: 0.75rem; font-weight: 900; padding: 0.25rem 0.5rem; border-radius: 0.25rem; text-transform: uppercase; }
+        .badge-ok { background: var(--green-100); color: var(--green-700); }
+        .badge-critical { background: var(--red-100); color: var(--red-700); }
+        .status-btn { width: 100%; padding: 0.75rem; border-radius: 0.375rem; font-size: 0.875rem; font-weight: 700; border: 1px solid; cursor: pointer; text-align: center; }
+        .btn-good { background: var(--green-600); color: white; border-color: var(--green-600); }
+        .btn-bad { background: var(--red-600); color: white; border-color: var(--red-600); }
+        .btn-inactive { background: var(--slate-50); color: var(--slate-500); border-color: var(--slate-200); }
+        
+        /* Head-to-Toe Section */
+        .htt-guide { background: var(--slate-200); padding: 0.75rem; border-radius: 0.5rem; border: 1px solid var(--slate-300); font-size: 0.75rem; color: var(--slate-700); margin-bottom: 1.5rem; }
+        .list-disc { list-style-type: disc; list-style-position: inside; margin-left: 1rem; }
+        .col-span-2 { grid-column: span 2 / span 2; }
+        
+        /* Buttons Section */
+        .btn-full { width: 100%; display: flex; justify-content: center; align-items: center; gap: 0.5rem; padding: 0.75rem; border-radius: 0.5rem; font-weight: 700; color: white; border: none; cursor: pointer; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); transition: background-color 0.2s; }
+        .btn-violet, .btn-blue { background: var(--brand-green); }
+        .btn-violet:hover, .btn-blue:hover { background: var(--brand-green-hover); }
+        .btn-bad:hover { background: var(--red-700); }
+        .btn-slate { background: var(--slate-800); }
+        .btn-slate:hover { background: var(--slate-900); }
+        
+        /* Vitals Log */
+        .log-container { background: var(--slate-100); border: 2px solid var(--slate-200); border-radius: 0.5rem; overflow: hidden; }
+        .log-header { background: var(--slate-200); padding: 0.5rem; font-size: 0.75rem; font-weight: 900; text-transform: uppercase; color: var(--slate-600); display: flex; justify-content: space-between; align-items: center; }
+        .log-list { max-height: 15rem; overflow-y: auto; display: flex; flex-direction: column; }
+        .log-entry { padding: 0.75rem; font-size: 0.875rem; border-bottom: 1px solid var(--slate-200); }
+        .log-entry:last-child { border-bottom: none; }
+        .log-time { font-family: monospace; font-weight: 700; color: var(--brand-green); margin-bottom: 0.5rem; }
+        .log-data { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.5rem; font-size: 0.75rem; font-weight: 500; color: var(--slate-700); }
+        
+        /* Reports Section */
+        .report-ops { background: var(--brand-green); color: white; border-left: 8px solid var(--brand-yellow); }
+        .report-med { background: var(--brand-yellow); color: black; border-left: 8px solid var(--brand-green); }
+        
+        .report-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid; padding-bottom: 0.5rem; margin-bottom: 1rem; }
+        .report-display { font-family: monospace; font-size: 0.875rem; line-height: 1.6; padding: 0.75rem; border-radius: 0.25rem; border: 1px solid; margin-bottom: 1rem; }
+        
+        .report-ops .report-header { border-color: rgba(255, 255, 255, 0.2); color: var(--brand-yellow); }
+        .report-ops .report-display { background: var(--brand-green-dark); border-color: rgba(255, 255, 255, 0.1); }
+        
+        .report-med .report-header { border-color: rgba(0, 0, 0, 0.15); color: black; }
+        .report-med .report-display { background: var(--brand-yellow-light); border-color: rgba(0, 0, 0, 0.1); font-weight: 500; white-space: pre-wrap; color: black; }
+        
+        .btn-yellow { background: var(--brand-yellow); color: black; }
+        .btn-yellow:hover { background: var(--brand-yellow-hover); }
+        
+        .text-cyan { color: white; }
+        .text-yellow { color: var(--brand-yellow); }
+        .border-left-yellow { border-left: 2px solid var(--brand-yellow); padding-left: 1rem; margin-left: 0.25rem; margin-top: 0.25rem; }
+        
+        /* FSA Section */
+        .fsa-wrapper { width: 100%; max-width: 36rem; margin: 0 auto; margin-top: 0.5rem; }
+        @media (min-width: 640px) { .fsa-wrapper { margin-top: 2.5rem; } }
+        .fsa-progress { display: flex; height: 0.75rem; background: var(--slate-200); border-radius: 9999px; overflow: hidden; margin-bottom: 1rem; box-shadow: inset 0 2px 4px 0 rgba(0,0,0,0.06); }
+        .fsa-bar { flex: 1; transition: background-color 0.3s; }
+        .fsa-bar.active { background: var(--brand-green); }
+        .fsa-card { background: white; padding: 1.25rem; border-radius: 1rem; border: 2px solid var(--slate-200); box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); display: flex; flex-direction: column; justify-content: space-between; min-height: 28rem; }
+        @media (min-width: 640px) { .fsa-card { padding: 2rem; aspect-ratio: 4/3; } }
+        .fsa-step-info { font-size: 0.875rem; font-weight: 900; color: var(--brand-green); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.5rem; }
+        .fsa-question { font-size: 1.5rem; font-weight: 900; color: var(--slate-900); line-height: 1.25; margin-bottom: 1rem; }
+        .fsa-desc { color: var(--slate-600); font-size: 1rem; margin-bottom: 0.75rem; }
+        .fsa-bullet-list { margin-bottom: 0.5rem; display: flex; flex-direction: column; gap: 0.5rem; }
+        .fsa-bullet-item { display: flex; align-items: flex-start; gap: 0.75rem; padding: 0.75rem; background: var(--slate-50); border-radius: 0.75rem; border: 1px solid var(--slate-100); font-weight: 700; font-size: 0.875rem; color: var(--slate-700); box-shadow: 0 1px 2px 0 rgba(0,0,0,0.05); }
+        .fsa-bullet-blue { border-left: 4px solid var(--brand-green); align-items: center; }
+        .fsa-btn-group { display: flex; flex-direction: column; gap: 0.75rem; margin-top: auto; }
+        .fsa-btn { display: flex; align-items: center; justify-content: space-between; padding: 1rem; border-radius: 0.75rem; border: 2px solid; font-weight: 900; font-size: 1.125rem; cursor: pointer; transition: transform 0.1s; }
+        .fsa-btn:active { transform: scale(0.98); }
+        .fsa-btn-primary { background: var(--brand-green); color: white; border-color: var(--brand-green); box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
+        .fsa-btn-primary:hover { background: var(--brand-green-hover); }
+        .fsa-btn-secondary { background: var(--slate-50); color: var(--slate-700); border-color: var(--slate-300); }
+        .fsa-btn-secondary:hover { background: var(--slate-100); }
+        
+        .fsa-result { display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; padding: 2rem; border-radius: 1rem; border: 2px solid; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); min-height: 28rem; }
+        @media (min-width: 640px) { .fsa-result { aspect-ratio: 4/3; } }
+        .bg-amber-50 { background: var(--amber-50); border-color: var(--amber-200); color: var(--amber-900); }
+        .bg-blue-50 { background: var(--blue-50); border-color: var(--blue-200); color: var(--blue-800); }
+        .bg-red-50 { background: var(--red-50); border-color: var(--red-200); color: var(--red-800); }
+        .bg-green-50 { background: var(--green-50); border-color: var(--green-200); color: var(--green-900); }
+        .fsa-restart { display: flex; justify-content: center; align-items: center; gap: 0.75rem; width: 100%; max-width: 20rem; background: var(--slate-800); color: white; border: none; padding: 1rem; border-radius: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; cursor: pointer; margin-top: 2.5rem; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
+        .fsa-restart:active { transform: scale(0.95); }
+        
+        /* Bottom Navigation */
+        .bottom-nav { position: fixed; bottom: 0; left: 0; width: 100%; background: white; border-top: 1px solid var(--slate-200); box-shadow: 0 -4px 6px -1px rgba(0,0,0,0.05); z-index: 20; padding-bottom: env(safe-area-inset-bottom); }
+        .nav-container { display: flex; justify-content: space-around; max-width: 42rem; margin: 0 auto; }
+        .nav-btn { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 0.5rem; flex: 1; border: none; background: transparent; cursor: pointer; color: var(--slate-400); transition: color 0.2s; }
+        .nav-btn.active { color: var(--brand-green); }
+        .nav-icon { font-size: 1.25rem; padding: 0.25rem; border-radius: 9999px; margin-bottom: 0.25rem; }
+        .nav-btn.active .nav-icon { background: var(--brand-green-light); }
+        .nav-label { font-size: 0.625rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; }
+    </style>
+</head>
+<body>
+
+  <div class="app-header">
+        <div class="header-title flex items-center gap-3">
+            <img src="icon-512.png" alt="OBS Logo" style="width: 2.5rem; height: 2.5rem; object-fit: contain; border-radius: 4px;">
+            <h1>OBS PAS + FSA</h1>
+        </div>
+        <div style="display: flex; gap: 0.5rem; align-items: center;">
+            <select id="patient-selector" onchange="App.switchPatient(this.value)" style="padding: 0.375rem; border-radius: 0.25rem; border: none; background: white; color: black; font-size: 0.75rem; font-weight: 700; max-width: 100px; text-overflow: ellipsis;">
+                <!-- Populated via JS -->
+            </select>
+            <button onclick="App.createNewPatient()" class="btn-reset">
+                <span class="text-xs">➕</span> New
+            </button>
+        </div>
+    </div>
+
+    <div class="app-main" id="main-container">
+        
+        <div id="tab-action" class="tab-content active space-y-8">
+            <div class="space-y-4">
+                <div class="section-header border-blue">
+                    <span class="text-2xl mr-2">👁️</span>
+                    <h2>Scene Size-Up</h2>
+                </div>
+                <div class="space-y-3" id="scene-container"></div>
+            </div>
+
+            <div class="space-y-4">
+                <div class="section-header border-green">
+                    <span class="text-2xl mr-2">❤️</span>
+                    <h2>Primary (ABCDE)</h2>
+                </div>
+                <div id="primary-alert"></div>
+                <div class="space-y-3" id="primary-container"></div>
+            </div>
+
+            <div class="space-y-4">
+                <div class="section-header border-rose">
+                    <span class="text-2xl mr-2">🧍</span>
+                    <h2>Head to Toe Exam</h2>
+                </div>
+                <div class="htt-guide">
+                    <div class="grid-2 mb-2">
+                        <div><strong class="uppercase block mb-1 underline">Look For:</strong><ul class="list-disc"><li>Puncture</li><li>Laceration</li><li>Abrasion</li><li>Burn</li><li>Contusion</li></ul></div>
+                        <div><strong class="uppercase block mb-1 underline">Feel For:</strong><ul class="list-disc"><li>Deformity</li><li>Instability</li><li>Crepitus</li><li>Tenderness</li><li>Swelling</li></ul></div>
+                    </div>
+                    <hr class="divider"/>
+                    <div class="grid-2 grid-gap-2 mt-1">
+                        <span><strong>Head:</strong> Raccoon Eyes, Battle Signs</span><span><strong>Neck:</strong> Tracheal Deviation</span>
+                        <span><strong>Chest:</strong> Asymmetry</span><span><strong>Abdomen:</strong> Rigidity</span>
+                        <span class="col-span-2"><strong>Extremities:</strong> Circulation, Sensation, Motion (CSM)</span>
+                    </div>
+                </div>
+                <div class="space-y-3" id="htt-container"></div>
+            </div>
+        </div>
+
+        <div id="tab-data" class="tab-content space-y-6">
+            <div class="space-y-4">
+                <div class="section-header border-indigo">
+                    <span class="text-2xl mr-2">🪪</span>
+                    <h2>Patient Details</h2>
+                </div>
+                <div class="card card-p4 space-y-4">
+                    <div class="grid-2">
+                        <input type="text" id="det-name" placeholder="Name" class="input" oninput="App.updateData('details', 'name', this.value)">
+                        <div class="grid-2 grid-gap-2">
+                            <input type="text" id="det-sex" placeholder="Sex" class="input" oninput="App.updateData('details', 'sex', this.value)">
+                            <input type="text" id="det-age" placeholder="Age" class="input" oninput="App.updateData('details', 'age', this.value)">
+                        </div>
+                    </div>
+                    <input type="text" id="det-loc" placeholder="Location" class="input w-full" oninput="App.updateData('details', 'loc', this.value)">
+                </div>
+            </div>
+
+            <div class="space-y-4">
+                <div class="section-header border-violet">
+                    <span class="text-2xl mr-2">📈</span>
+                    <h2>Vitals</h2>
+                </div>
+                <div class="card card-p4">
+                    <div class="space-y-4 mb-4" id="vitals-inputs"></div>
+                    <button onclick="App.logVitals()" class="btn-full btn-violet mb-4"><span class="text-lg mr-1">🕒</span> Log Vitals (Time Stamp)</button>
+                    <div id="vitals-log-container"></div>
+                </div>
+            </div>
+
+            <div class="space-y-4">
+                <div class="section-header border-amber">
+                    <span class="text-2xl mr-2">🔥</span>
+                    <h2>Pain (OPQRST)</h2>
+                </div>
+                <div class="card card-p4" id="opqrst-container">
+                    <!-- Populated by JS renderOpqrst() -->
+                </div>
+            </div>
+
+            <div class="space-y-4">
+                <div class="section-header border-teal">
+                    <span class="text-2xl mr-2">📖</span>
+                    <h2>History (SAMPLE)</h2>
+                </div>
+                <div class="card card-p4">
+                    <div class="space-y-4" id="sample-container"></div>
+                </div>
+            </div>
+
+            <div class="space-y-4">
+                <div class="section-header border-slate">
+                    <span class="text-2xl mr-2">📋</span>
+                    <h2>Report Summary</h2>
+                </div>
+                <div class="card card-p4">
+                    <div class="space-y-4" id="summary-container"></div>
+                </div>
+            </div>
+
+            <!-- Master Delete Button -->
+            <div class="mt-8 pt-6 border-t" style="border-top: 2px solid var(--slate-300);">
+                <button onclick="App.deleteAllData()" class="btn-full btn-bad">
+                    <span class="text-lg mr-1">🗑️</span> CLEAR ALL SYSTEM DATA
+                </button>
+            </div>
+        </div>
+
+        <div id="tab-report" class="tab-content space-y-8 pb-10">
+            <div class="card card-p4 report-card report-ops">
+                <div class="report-header">
+                    <h2><span class="mr-2">📻</span>Ops Room Brief (via Comms)</h2>
+                </div>
+                <div id="ops-brief-display" class="report-display"></div>
+            </div>
+            
+            <div class="card card-p4 report-card report-med">
+                <div class="report-header">
+                    <h2><span class="mr-2">⚕️</span>Medical Report</h2>
+                </div>
+                <pre id="handover-display" class="report-display"></pre>
+                
+                <!-- Added side-by-side grid for Copy and Download buttons -->
+                <div class="grid-2 grid-gap-2">
+                    <button onclick="App.copyReport('handover')" class="btn-full btn-blue mb-0">
+                        <span class="text-lg mr-1">📋</span> Copy
+                    </button>
+                    <button onclick="App.downloadReport()" class="btn-full btn-slate mb-0">
+                        <span class="text-lg mr-1">💾</span> Save .txt
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div id="tab-fsa" class="tab-content pb-8">
+            <div id="fsa-wizard-container" class="fsa-wrapper"></div>
+        </div>
+    </div>
+
+    <div class="bottom-nav">
+        <div class="nav-container" id="nav-container"></div>
+    </div>
+
+    <script>
+        const App = {
+            activeTab: 'action',
+            fsaStep: 0,
+            
+            patients: [],
+            currentPatientIndex: 0,
+
+            get data() {
+                return this.patients[this.currentPatientIndex];
+            },
+
+            // Constants
+            primaryGroups: [
+                { title: 'A - Airway', checks: [{ k: 'a', goodLabel: 'Clear', badLabel: 'Obstructed' }] },
+                { title: 'B - Breathing', checks: [{ k: 'b', goodLabel: 'Normal', badLabel: 'Distressed/Stopped' }] },
+                { title: 'C - Circulation', checks: [{ k: 'c_bleed', label: 'Major Bleeding', goodLabel: 'Controlled / None', badLabel: 'Active Bleed' }, { k: 'c_sweep', label: 'Blood Sweep', goodLabel: 'No Bleeding', badLabel: 'Bleeding' }, { k: 'c_pulse', label: 'Radial Pulse', goodLabel: 'Pulse Present', badLabel: 'Weak / No Pulse' }]},
+                { title: 'D - Decision (Spine)', checks: [{ k: 'd', goodLabel: 'Cleared', badLabel: 'Immobilized' }] },
+                { title: 'E - Expose', checks: [{ k: 'e', goodLabel: 'No Wounds', badLabel: 'Wounds Found' }] }
+            ],
+            bodyParts: ["Head", "Neck", "Shoulder (L/R)", "Chest", "Abdomen", "Pelvis", "Groin", "Arm + Hand (R)", "Arm + Hand (L)", "Leg + Foot (R)", "Leg + Foot (L)", "Spine", "Upper Back", "Lower Back"],
+            
+            vitalsConfig: [
+                { id: 'lor', label: 'LOR (AOR-VPU Scale)' }, 
+                { id: 'hr', label: 'HR (60-100)' }, 
+                { id: 'rr', label: 'RR (12-20)' }, 
+                { id: 'temp', label: 'Temp. (36.5degC - 37.5degC)' }, 
+                { id: 'skin', label: 'Skin (Pink, Warm, Dry)' }, 
+                { id: 'pupils', label: 'Pupils (PERRL)' }
+            ],
+            
+            opqrstMap: [{ k: 'o', l: 'Onset' }, { k: 'p', l: 'Provoking/Palliating' }, { k: 'q', l: 'Quality' }, { k: 'r', l: 'Region' }, { k: 's', l: 'Severity' }, { k: 't', l: 'Timing' }],
+            sampleMap: { symptoms: 'Symptoms', allergies: 'Allergies', meds: 'Medication/Intoxication', past: 'Pertinent Medical History', last: 'Last Intake/Output', events: 'Events' },
+            fsaStepsConfig: [
+                { id: 'pas', title: 'Initial Assessment', question: 'Patient Assessment (PAS) completed?', options: [{ label: 'Yes', icon: '✅', next: 1 }, { label: 'No', icon: '⛔', action: 'complete_pas' }] },
+                { id: 'moi', title: 'Mechanism (MOI)', question: 'Is there a Positive MOI?', detailedList: [{ icon: "🧠", text: "Falls with altered consciousness" }, { icon: "⚡", text: "High velocity impact" }, { icon: "⬇️", text: "Fall from height >1m" }], options: [{ label: 'Yes / Uncertain', icon: '✅', next: 2 }, { label: 'No', icon: '⛔', action: 'no_fsa_needed' }] },
+                { id: 'reliability', title: 'Reliability', question: 'Is the patient reliable?', bullets: [ ' A+O x 3/4',  ' Sober (No drugs/alcohol)',  ' No Distracting Injury'], options: [{ label: 'Yes', icon: '✅', next: 3 }, { label: 'No', icon: '⛔', action: 'treat_spinal' }] },
+                { id: 'csm', title: 'Physical (CSM)', question: 'Full CSM on all 4 limbs?', description: 'Check Circulation, Sensation, Motion.', options: [{ label: 'Yes', icon: '✅', next: 4 }, { label: 'No', icon: '⛔', action: 'treat_spinal' }] },
+                { id: 'palpation', title: 'Palpation', question: 'No pain on palpation?', description: 'Press firmly along the entire spine.', options: [{ label: 'No Pain', icon: '✅', action: 'release' }, { label: 'Pain Found', icon: '⛔', action: 'treat_spinal' }] }
+            ],
+
+            init() {
+                this.loadData();
+                this.renderNav();
+                this.updateAllUI();
+            },
+
+            getBlankPatient() {
+                return {
+                    id: Date.now(),
+                    details: { name: '', sex: '', age: '', loc: '' },
+                    scene: { '1': false, '2': false, moiDesc: '', '3': false, '4': false, '5': false, consent: false, cspine: false, complaint: false, complaintDesc: '' },
+                    primary: { a: 'unchecked', b: 'unchecked', c_bleed: 'unchecked', c_sweep: 'unchecked', c_pulse: 'unchecked', d: 'unchecked', e: 'unchecked' },
+                    injuries: {}, httChecks: {}, vitals: { lor: '', hr: '', rr: '', skin: '', pupils: '', temp: '' }, vitalsLog: [],
+                    opqrstDraft: { id: null, location: '', o: '', p: '', q: '', r: '', s: '', t: '' }, opqrstLog: [], 
+                    history: { symptoms: '', allergies: '', meds: '', past: '', last: '', events: '' }, summary: { treatment: '', problems: '', reqs: '' }
+                };
+            },
+
+            loadData() {
+                try {
+                    const saved = localStorage.getItem('obs_vanilla_data_v2'); 
+                    if (saved) {
+                        this.patients = JSON.parse(saved);
+                        if(this.patients.length === 0) this.patients.push(this.getBlankPatient());
+                    } else {
+                        this.patients = [this.getBlankPatient()];
+                    }
+                } catch (e) { 
+                    this.patients = [this.getBlankPatient()];
+                    console.warn("Storage blocked"); 
+                }
+            },
+
+            saveData() {
+                try { localStorage.setItem('obs_vanilla_data_v2', JSON.stringify(this.patients)); } catch (e) {}
+                this.renderPatientSelector();
+            },
+
+            createNewPatient() {
+                this.patients.push(this.getBlankPatient());
+                this.currentPatientIndex = this.patients.length - 1;
+                this.fsaStep = 0;
+                this.saveData();
+                this.updateAllUI();
+            },
+
+            switchPatient(index) {
+                this.currentPatientIndex = parseInt(index);
+                this.fsaStep = 0;
+                this.updateAllUI();
+            },
+
+            deleteAllData() {
+                if(confirm("CRITICAL WARNING: This will delete ALL patient data and logs. Are you sure?")) {
+                    try { localStorage.removeItem('obs_vanilla_data_v2'); } catch (e) {}
+                    window.location.reload();
+                }
+            },
+
+            updateData(category, field, value) {
+                this.data[category][field] = value;
+                this.saveData();
+                if(category === 'scene' && (field === '2' || field === 'complaint')) this.renderScene();
+                if(category === 'details' && field === 'name') this.renderPatientSelector();
+            },
+
+            switchTab(tabId) {
+                this.activeTab = tabId;
+                document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+                document.getElementById(`tab-${tabId}`).classList.add('active');
+                if(tabId === 'data') this.renderSummary();
+                if(tabId === 'report') this.renderReports();
+                if(tabId === 'fsa') this.renderFSA();
+                this.renderNav();
+                setTimeout(() => window.scrollTo(0, 0), 10);
+            },
+
+            renderNav() {
+                const tabs = [{ id: 'action', icon: '🛡️', label: 'Action' }, { id: 'data', icon: '🗄️', label: 'Data' }, { id: 'report', icon: '📻', label: 'Reports' }, { id: 'fsa', icon: '🦴', label: 'FSA' }];
+                const container = document.getElementById('nav-container');
+                container.innerHTML = tabs.map(t => `
+                    <button onclick="App.switchTab('${t.id}')" class="nav-btn ${this.activeTab === t.id ? 'active' : ''}">
+                        <div class="nav-icon">${t.icon}</div>
+                        <span class="nav-label">${t.label}</span>
+                    </button>
+                `).join('');
+            },
+
+            updateAllUI() {
+                const d = this.data;
+                this.renderPatientSelector();
+                
+                document.getElementById('det-name').value = d.details.name;
+                document.getElementById('det-loc').value = d.details.loc;
+                document.getElementById('det-sex').value = d.details.sex;
+                document.getElementById('det-age').value = d.details.age;
+
+                this.renderScene();
+                this.renderPrimary();
+
+                document.getElementById('htt-container').innerHTML = this.bodyParts.map(part => `
+                    <div class="card">
+                        <div class="flex items-center gap-3 mb-2">
+                            <input type="checkbox" class="custom-checkbox" onchange="App.data.httChecks['${part}'] = this.checked; App.saveData()" ${d.httChecks[part] ? 'checked' : ''}>
+                            <label class="font-bold">${part}</label>
+                        </div>
+                        <input type="text" oninput="App.setInjury('${part}', this.value)" class="input" value="${d.injuries[part] || ''}">
+                    </div>
+                `).join('');
+
+                document.getElementById('vitals-inputs').innerHTML = this.vitalsConfig.map(v => `
+                    <div>
+                        <label class="input-label">${v.label}</label>
+                        <input type="text" class="input input-h10 font-bold" value="${d.vitals[v.id]}" oninput="App.updateData('vitals', '${v.id}', this.value)">
+                    </div>
+                `).join('');
+
+                this.renderOpqrst();
+
+                document.getElementById('sample-container').innerHTML = Object.entries(this.sampleMap).map(([k, label]) => `
+                    <div>
+                        <label class="input-label">${label}</label>
+                        <input type="text" class="input input-p3" value="${d.history[k]}" oninput="App.updateData('history', '${k}', this.value)">
+                    </div>
+                `).join('');
+
+                this.renderVitalsLog();
+                this.renderSummary();
+                if(this.activeTab === 'report') this.renderReports();
+                if(this.activeTab === 'fsa') this.renderFSA();
+            },
+
+            renderPatientSelector() {
+                const selector = document.getElementById('patient-selector');
+                if(!selector) return;
+                selector.innerHTML = this.patients.map((p, i) => {
+                    const name = p.details.name || `Casualty ${i + 1}`;
+                    return `<option value="${i}" ${i === this.currentPatientIndex ? 'selected' : ''}>${name}</option>`;
+                }).join('');
+            },
+
+            renderOpqrst() {
+                const d = this.data;
+                if (!d.opqrstLog) d.opqrstLog = [];
+                if (!d.opqrstDraft) d.opqrstDraft = { id: null, location: '', o: '', p: '', q: '', r: '', s: '', t: '' };
+
+                const draft = d.opqrstDraft;
+                let html = `
+                    <div class="mb-4">
+                        <label class="input-label" style="color: var(--brand-green);">Injury Location</label>
+                        <input type="text" class="input input-p3 font-bold" style="border: 2px solid var(--brand-green);" value="${draft.location}" oninput="App.updateOpqrstDraft('location', this.value)" placeholder="e.g., Right Ankle, Lower Back">
+                    </div>
+                    <div class="grid-2 grid-gap-2 mb-4">
+                `;
+                
+                this.opqrstMap.forEach(item => {
+                    html += `
+                        <div>
+                            <label class="input-label">${item.l}</label>
+                            <input type="text" class="input" value="${draft[item.k]}" oninput="App.updateOpqrstDraft('${item.k}', this.value)">
+                        </div>
+                    `;
+                });
+                
+                html += `</div>
+                    <button onclick="App.saveOpqrstLog()" class="btn-full btn-blue mb-2">
+                        <span class="text-lg mr-1">${draft.id ? '💾' : '➕'}</span> ${draft.id ? 'Update Pain Log' : 'Log Pain Info'}
+                    </button>
+                `;
+
+                if (d.opqrstLog.length > 0) {
+                    // Using the exact same container style as the Vitals Log
+                    html += `
+                        <div class="log-container mt-6">
+                            <div class="log-header">
+                                <span>Recorded Pain Logs</span>
+                                <span>${d.opqrstLog.length} Entries</span>
+                            </div>
+                            <div class="log-list">
+                    `;
+                    
+                    d.opqrstLog.forEach(log => {
+                        html += `
+                            <div class="log-entry">
+                                <!-- Flex container to split Title to the left, Buttons to the right -->
+                                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.5rem;">
+                                    
+                                    <!-- Title utilizing the brand-green monospace font -->
+                                    <div class="log-time" style="margin-bottom: 0; text-transform: uppercase;">
+                                        [${log.location || 'Unspecified Location'}]
+                                    </div>
+                                    
+                                    <!-- Button container right-aligned with 0.75rem spacing (gap) -->
+                                    <div style="display: flex; gap: 0.75rem;">
+                                        <button onclick="App.editOpqrst(${log.id})" class="btn-reset" style="background: var(--slate-200); color: var(--slate-700);">✏️ Edit</button>
+                                        <button onclick="App.deleteOpqrst(${log.id})" class="btn-reset" style="background: var(--red-100); color: var(--red-700);">🗑️ Del</button>
+                                    </div>
+                                </div>
+                                
+                                <!-- Utilizing the 2-column small font grid from the Vitals Log -->
+                                <div class="log-data">
+                                    <span><strong style="color: var(--brand-green);">O:</strong> ${log.o || '-'}</span>
+                                    <span><strong style="color: var(--brand-green);">P:</strong> ${log.p || '-'}</span>
+                                    <span><strong style="color: var(--brand-green);">Q:</strong> ${log.q || '-'}</span>
+                                    <span><strong style="color: var(--brand-green);">R:</strong> ${log.r || '-'}</span>
+                                    <span><strong style="color: var(--brand-green);">S:</strong> ${log.s || '-'}</span>
+                                    <span><strong style="color: var(--brand-green);">T:</strong> ${log.t || '-'}</span>
+                                </div>
+                            </div>
+                        `;
+                    });
+                    html += `
+                            </div>
+                        </div>
+                    `;
+                }
+                document.getElementById('opqrst-container').innerHTML = html;
+            },
+
+            updateOpqrstDraft(field, value) {
+                this.data.opqrstDraft[field] = value;
+                this.saveData(); 
+            },
+            
+            saveOpqrstLog() {
+                const draft = this.data.opqrstDraft;
+                if (!draft.location && !draft.o && !draft.p && !draft.q && !draft.r && !draft.s && !draft.t) {
+                    alert("Please enter some details before logging.");
+                    return;
+                }
+
+                if (draft.id) {
+                    const index = this.data.opqrstLog.findIndex(l => l.id === draft.id);
+                    if (index > -1) this.data.opqrstLog[index] = { ...draft };
+                } else {
+                    this.data.opqrstLog.push({ ...draft, id: Date.now() });
+                }
+                
+                this.data.opqrstDraft = { id: null, location: '', o: '', p: '', q: '', r: '', s: '', t: '' };
+                this.saveData();
+                this.renderOpqrst();
+            },
+
+            editOpqrst(id) {
+                const log = this.data.opqrstLog.find(l => l.id === id);
+                if (log) {
+                    this.data.opqrstDraft = { ...log };
+                    this.saveData();
+                    this.renderOpqrst();
+                }
+            },
+
+            deleteOpqrst(id) {
+                if(confirm("Delete this pain log?")) {
+                    this.data.opqrstLog = this.data.opqrstLog.filter(l => l.id !== id);
+                    this.saveData();
+                    this.renderOpqrst();
+                }
+            },
+
+            renderScene() {
+                const s = this.data.scene;
+                const toggleHtml = (id, label, field) => `
+                    <label class="scene-item">
+                        <input type="checkbox" class="custom-checkbox" ${s[field] ? 'checked' : ''} onchange="App.updateData('scene', '${field}', this.checked); App.renderScene()">
+                        <span class="scene-label ${s[field] ? 'checked' : ''}">${id}. ${label}</span>
+                    </label>
+                `;
+                document.getElementById('scene-container').innerHTML = `
+                    ${toggleHtml(1, 'I am No. 1. (Safety first! Check for danger.)', '1')}
+                    <div class="card mb-2">
+                        <label class="flex items-center gap-3 ${s['2'] ? 'mb-2' : ''} cursor-pointer">
+                            <input type="checkbox" class="custom-checkbox" ${s['2'] ? 'checked' : ''} onchange="App.updateData('scene', '2', this.checked); App.renderScene()">
+                            <span class="scene-label ${s['2'] ? 'checked' : ''}">2. What happened to you? (MOI)</span>
+                        </label>
+                        ${s['2'] ? `<input type="text" placeholder="Describe mechanism of injury..." class="input" value="${s.moiDesc}" oninput="App.updateData('scene', 'moiDesc', this.value)">` : ''}
+                    </div>
+                    ${toggleHtml(3, 'Not on me! (Don PPE.)', '3')}
+                    ${toggleHtml(4, 'Any more? (Casualties.)', '4')}
+                    ${toggleHtml(5, 'Dead or alive? (Status check.)', '5')}
+                    
+                    <div class="critical-box">
+                        <h3 class="critical-title">Critical 3Cs</h3>
+                        <div class="space-y-4">
+                            <label class="critical-row">
+                                <input type="checkbox" class="custom-checkbox" ${s.consent ? 'checked' : ''} onchange="App.updateData('scene', 'consent', this.checked)">
+                                <span>Consent</span>
+                            </label>
+                            <label class="critical-row">
+                                <input type="checkbox" class="custom-checkbox" ${s.cspine ? 'checked' : ''} onchange="App.updateData('scene', 'cspine', this.checked)">
+                                <span>Control (C-Spine and Situation)</span>
+                            </label>
+                            <div>
+                                <label class="critical-row ${s.complaint ? 'mb-2' : ''}">
+                                    <input type="checkbox" class="custom-checkbox" ${s.complaint ? 'checked' : ''} onchange="App.updateData('scene', 'complaint', this.checked); App.renderScene()">
+                                    <span>Chief Complaint</span>
+                                </label>
+                                ${s.complaint ? `<input type="text" placeholder="State chief complaint..." class="input bg-white" value="${s.complaintDesc}" oninput="App.updateData('scene', 'complaintDesc', this.value)">` : ''}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            },
+
+            setPrimaryStatus(key, status) {
+                this.updateData('primary', key, status);
+                this.renderPrimary();
+            },
+
+            renderPrimary() {
+                const hasFailure = Object.values(this.data.primary).includes('bad');
+                document.getElementById('primary-alert').innerHTML = hasFailure ? `
+                    <div class="alert-critical">
+                        <span class="text-2xl mt-1">⚠️</span>
+                        <div>
+                            <h3 class="font-black uppercase mb-2">Critical Issue!</h3>
+                            <p class="font-bold">Stop and fix!<br/>Report to Ops Room immediately after treatment.</p>
+                        </div>
+                    </div>
+                ` : '';
+
+                document.getElementById('primary-container').innerHTML = this.primaryGroups.map((group, idx) => {
+                    const statuses = group.checks.map(c => this.data.primary[c.k]);
+                    let badge = '';
+                    if (statuses.includes('bad')) badge = '<span class="badge badge-critical">Critical</span>';
+                    else if (statuses.every(s => s === 'good')) badge = '<span class="badge badge-ok">OK</span>';
+                    
+                    return `
+                        <div class="card">
+                            <div class="primary-header">
+                                <span class="primary-title">${group.title}</span>
+                                ${badge}
+                            </div>
+                            <div class="space-y-4 mt-4">
+                                ${group.checks.map(check => {
+                                    const state = this.data.primary[check.k];
+                                    const goodClass = state === 'good' ? 'btn-good' : 'btn-inactive';
+                                    const badClass = state === 'bad' ? 'btn-bad' : 'btn-inactive';
+                                    return `
+                                        <div>
+                                            ${check.label ? `<div class="input-label">${check.label}</div>` : ''}
+                                            <div class="grid-2 gap-3 mt-1">
+                                                <button onclick="App.setPrimaryStatus('${check.k}', 'good')" class="status-btn ${goodClass}">${check.goodLabel}</button>
+                                                <button onclick="App.setPrimaryStatus('${check.k}', 'bad')" class="status-btn ${badClass}">${check.badLabel}</button>
+                                            </div>
+                                        </div>
+                                    `;
+                                }).join('')}
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            },
+
+            setInjury(part, value) {
+                if (value === "") delete this.data.injuries[part];
+                else this.data.injuries[part] = value;
+                this.saveData();
+            },
+
+            logVitals() {
+                const now = new Date();
+                const ts = now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
+                this.data.vitalsLog.unshift({ timestamp: ts, data: { ...this.data.vitals } });
+                this.saveData();
+                this.renderVitalsLog();
+            },
+
+            renderVitalsLog() {
+                const logDiv = document.getElementById('vitals-log-container');
+                if(!this.data.vitalsLog.length) { logDiv.innerHTML = ''; return; }
+                logDiv.innerHTML = `
+                    <div class="log-container mt-4">
+                        <div class="log-header">
+                            <span>Recorded Log</span>
+                            <span>${this.data.vitalsLog.length} Entries</span>
+                        </div>
+                        <div class="log-list">
+                            ${this.data.vitalsLog.map(entry => `
+                                <div class="log-entry">
+                                    <div class="log-time">[${entry.timestamp}]</div>
+                                    <div class="log-data">
+                                        <span>LOR: ${entry.data.lor || '-'}</span>
+                                        <span>HR: ${entry.data.hr || '-'}</span>
+                                        <span>RR: ${entry.data.rr || '-'}</span>
+                                        <span>Temp: ${entry.data.temp || '-'}</span>
+                                        <span>Skin: ${entry.data.skin || '-'}</span>
+                                        <span>Pupils: ${entry.data.pupils || '-'}</span>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+            },
+
+           renderSummary() {
+                const d = this.data;
+                const moiDerived = d.scene.moiDesc || (d.scene['2'] ? 'No mechanism logged' : 'No mechanism described');
+                const injuriesDerived = Object.entries(d.injuries).length > 0 ? Object.entries(d.injuries).map(([k,v]) => `${k}: ${v}`).join('<br>') : "No injuries logged";
+                const ccDerived = d.scene.complaintDesc || "No complaint logged";
+                
+                document.getElementById('summary-container').innerHTML = `
+                    <div><label class="input-label">Chief Complaint</label><div class="input italic opacity-70 mb-4">${ccDerived}</div></div>
+                    <div><label class="input-label">MOI (From Scene)</label><div class="input italic opacity-70 mb-4">${moiDerived}</div></div>
+                    <div><label class="input-label">Injuries</label><div class="input italic opacity-70 mb-4">${injuriesDerived}</div></div>
+                    <div class="mb-4"><label class="input-label">Treatment</label><textarea rows="3" class="input bg-white" placeholder="List treatments performed..." oninput="App.updateData('summary', 'treatment', this.value)">${d.summary.treatment}</textarea></div>
+                    <div class="mb-4"><label class="input-label">Expected Issues/Problems</label><textarea rows="3" class="input bg-white" placeholder="Anticipated complications..." oninput="App.updateData('summary', 'problems', this.value)">${d.summary.problems}</textarea></div>
+                    <div><label class="input-label">Requests / Requisitions</label><textarea rows="2" class="input bg-white" placeholder="Evac needed? Equipment needed?" oninput="App.updateData('summary', 'reqs', this.value)">${d.summary.reqs}</textarea></div>
+                `;
+            },
+
+            // --- REPORTS ---
+            generateReportsText() {
+                const d = this.data;
+                const moiText = d.scene.moiDesc || (d.scene['2'] ? 'No mechanism logged' : 'Unknown');
+                const injArr = Object.entries(d.injuries);
+                
+                let vitalsSection = "";
+                if (d.vitalsLog.length > 0) {
+                    vitalsSection = [...d.vitalsLog].reverse().map(e => `[${e.timestamp}]\nLOR: ${e.data.lor || '-'} | HR: ${e.data.hr || '-'} | RR: ${e.data.rr || '-'}\nTemp: ${e.data.temp || '-'} | Skin: ${e.data.skin || '-'} | Pupils: ${e.data.pupils || '-'}`).join('\n\n');
+                } else {
+                    vitalsSection = `[Current]\nLOR: ${d.vitals.lor || '-'} | HR: ${d.vitals.hr || '-'} | RR: ${d.vitals.rr || '-'}\nTemp: ${d.vitals.temp || '-'} | Skin: ${d.vitals.skin || '-'} | Pupils: ${d.vitals.pupils || '-'}`;
+                }
+
+                let injHtmlOps = injArr.length > 0 
+                    ? `<div class="border-left-yellow text-yellow">` + injArr.map(([k,v]) => `<div>${k}: ${v}</div>`).join('') + `</div>` 
+                    : `<div class="border-left-yellow text-yellow italic">No injuries logged</div>`;
+                
+                let opqrstSection = "No pain logged";
+                if (d.opqrstLog && d.opqrstLog.length > 0) {
+                    opqrstSection = d.opqrstLog.map(l => `[${l.location || 'Unspecified Location'}]\nOnset: ${l.o || '-'}\nProvoking/Palliating: ${l.p || '-'}\nQuality: ${l.q || '-'}\nRegion: ${l.r || '-'}\nSeverity: ${l.s || '-'}\nTiming: ${l.t || '-'}`).join('\n\n');
+                }
+
+                const opsHtml = `
+                    <div class="mb-4"><span class="text-cyan">Ops Room, Ops Room. This is </span><span class="text-yellow font-bold">[Name]</span>. <br> I have a casualty. Standby to copy message.</div>
+                    
+                    <div class="mb-4 flex flex-col">
+                        <span class="text-cyan font-bold">Details:</span>
+                        <div class="border-left-yellow text-yellow">
+                            ${d.details.name || 'Unknown'}, ${d.details.sex || '?'}/${d.details.age || '?'}. Loc: ${d.details.loc || '?'}
+                        </div>
+                    </div>
+                    
+                    <div class="mb-4 flex flex-col">
+                        <span class="text-cyan font-bold">MOI:</span>
+                        <div class="border-left-yellow text-yellow">
+                            <div>${moiText}</div>
+                            <div>C.C.: ${d.scene.complaintDesc || 'None'}</div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-4 flex flex-col">
+                        <span class="text-cyan font-bold">Injuries:</span>
+                        ${injHtmlOps}
+                    </div>
+                    
+                    <div class="mb-4 flex flex-col">
+                        <span class="text-cyan font-bold">Signs:</span>
+                        <div class="border-left-yellow text-yellow">
+                            LOR ${d.vitals.lor || '-'}, HR ${d.vitals.hr || '-'}, RR ${d.vitals.rr || '-'}
+                        </div>
+                    </div>
+                    
+                    <div class="mb-4 flex flex-col">
+                        <span class="text-cyan font-bold">Treatment:</span>
+                        <div class="border-left-yellow text-yellow whitespace-pre-wrap">${(d.summary.treatment || 'None').trim()}</div>
+                    </div>
+                    
+                    <div class="mb-4 flex flex-col">
+                        <span class="text-cyan font-bold">Requests:</span>
+                        <div class="border-left-yellow text-yellow whitespace-pre-wrap">${(d.summary.reqs || 'None').trim()}</div>
+                    </div>
+                    
+                    <div class="text-cyan mt-4">Over.</div>
+                `;
+
+                const opsTextOnly = `Ops Room, Ops Room, this is [Name]. \n I have a casualty. Standby to copy message. \n\nDetails:\n${d.details.name || 'Unknown'}, ${d.details.sex || '?'}/${d.details.age || '?'} | Loc: ${d.details.loc || '?'}\n\nMOI:\n${moiText}\nC.C.: ${d.scene.complaintDesc || 'None'}\n\nInjuries:\n${injArr.length > 0 ? injArr.map(([k,v]) => `${k}: ${v}`).join('\n') : "None logged"}\n\nSigns:\nLOR ${d.vitals.lor || '-'}, HR ${d.vitals.hr || '-'}, RR ${d.vitals.rr || '-'}\n\nTreatment:\n${(d.summary.treatment || 'None').trim()}\n\nRequests:\n${(d.summary.reqs || 'None').trim()}\n\nOver.`;
+
+                const fullHandover = `Name: ${d.details.name || 'Unknown'} (${d.details.sex || '?'}/${d.details.age || '?'})\nLocation: ${d.details.loc || 'Unknown'}\nMechanism: ${moiText}\nChief Complaint: ${d.scene.complaintDesc || 'None'}\n\nINJURIES:\n${injArr.length > 0 ? injArr.map(([k,v]) => `- ${k}: ${v}`).join('\n') : "No injuries logged"}\n\nVITALS HISTORY:\n${vitalsSection}\n\nPAIN (OPQRST):\n${opqrstSection}\n\nHISTORY (SAMPLE):\nSymptoms: ${d.history.symptoms}\nAllergies: ${d.history.allergies}\nMedication/Intoxication: ${d.history.meds}\nPertinent Medical History: ${d.history.past}\nLast Intake/Output: ${d.history.last}\nEvents: ${d.history.events}\n\nTREATMENT:\n${(d.summary.treatment || 'None').trim()}\n\nEXPECTED ISSUES:\n${(d.summary.problems || 'None listed').trim()}\n\nREQUESTS:\n${(d.summary.reqs || 'None').trim()}`;
+
+                return { opsHtml, opsTextOnly, fullHandover };
+            },
+
+            renderReports() {
+                const { opsHtml, opsTextOnly, fullHandover } = this.generateReportsText();
+                document.getElementById('ops-brief-display').innerHTML = opsHtml;
+                document.getElementById('handover-display').textContent = fullHandover;
+                this.opsTextData = opsTextOnly;
+                this.handoverData = fullHandover;
+            },
+
+            copyReport(type) {
+                const text = type === 'ops' ? this.opsTextData : this.handoverData;
+                navigator.clipboard.writeText(text).then(() => alert("Report copied to clipboard.")).catch(() => {
+                    const ta = document.createElement("textarea"); ta.value = text; document.body.appendChild(ta);
+                    ta.select(); document.execCommand('copy'); document.body.removeChild(ta); alert("Report copied to clipboard.");
+                });
+            },
+
+            // Phase 3: Text file export function
+            downloadReport() {
+                const text = this.handoverData;
+                if (!text) {
+                    alert("No data available to download.");
+                    return;
+                }
+                
+                // Creates a clean, safe filename replacing spaces/special characters with underscores
+                const patientName = this.data.details.name ? this.data.details.name.replace(/[^a-z0-9]/gi, '_').toLowerCase() : 'unknown_patient';
+                const dateStr = new Date().toISOString().split('T')[0];
+                const fileName = `OBS_Med_Report_${patientName}_${dateStr}.txt`;
+                
+                // Pack the string into a Blob to trigger a browser file download
+                const blob = new Blob([text], { type: 'text/plain' });
+                const url = URL.createObjectURL(blob);
+                
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = fileName;
+                document.body.appendChild(a);
+                a.click();
+                
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            },
+
+            // --- FSA WIZARD ---
+            setFSAStep(stepTarget) {
+                this.fsaStep = stepTarget;
+                this.renderFSA();
+            },
+
+            renderFSA() {
+                const container = document.getElementById('fsa-wizard-container');
+                const renderResult = (title, message, colorClass, icon) => `
+                    <div class="fsa-result ${colorClass}">
+                        <div class="mb-6"><span style="font-size: 4rem;">${icon}</span></div>
+                        <h2 class="font-black mb-4 uppercase" style="font-size: 1.875rem;">${title}</h2>
+                        <p class="font-bold mb-6">${message}</p>
+                        <button onclick="App.setFSAStep(0)" class="fsa-restart">
+                            <span class="text-xl">🔄</span> Restart
+                        </button>
+                    </div>
+                `;
+
+                if (typeof this.fsaStep === 'string') {
+                    if (this.fsaStep === 'complete_pas') container.innerHTML = renderResult('Complete PAS First', 'Do not proceed to FSA until standard assessment is done.', 'bg-amber-50', '⚠️');
+                    if (this.fsaStep === 'no_fsa_needed') container.innerHTML = renderResult('FSA Not Required', 'Negative MOI. Continue standard care.', 'bg-blue-50', '✅');
+                    if (this.fsaStep === 'treat_spinal') container.innerHTML = renderResult('Treat as Spinal', 'Criteria not met. Maintain spinal immobilization and Evacuate.', 'bg-red-50', '⚠️');
+                    if (this.fsaStep === 'release') container.innerHTML = renderResult('Clear Spine', 'All FSA criteria passed. Safe to discontinue spinal protocols.', 'bg-green-50', '✅');
+                    return;
+                }
+
+                const currentStep = this.fsaStepsConfig[this.fsaStep];
+                container.innerHTML = `
+                    <div>
+                        <div class="section-header border-slate-800">
+                            <span class="text-2xl mr-2">🦴</span>
+                            <h2>Spinal Assessment</h2>
+                        </div>
+                        <div class="fsa-progress">
+                            ${this.fsaStepsConfig.map((_, i) => `<div class="fsa-bar ${i <= this.fsaStep ? 'active' : ''}"></div>`).join('')}
+                        </div>
+                        <div class="fsa-card">
+                            <div class="mb-6">
+                                <h3 class="fsa-step-info">Step ${this.fsaStep + 1}: ${currentStep.title}</h3>
+                                <h2 class="fsa-question">${currentStep.question}</h2>
+                                <div class="mb-4">
+                                    ${currentStep.description ? `<p class="fsa-desc">${currentStep.description}</p>` : ''}
+                                    ${currentStep.detailedList ? `<div class="fsa-bullet-list">` + currentStep.detailedList.map(item => `
+                                        <div class="fsa-bullet fsa-bullet-blue">
+                                            <span style="font-size: 1.25rem;">${item.icon}</span>
+                                            <span>${item.text}</span>
+                                        </div>
+                                    `).join('') + `</div>` : ''}
+                                    ${currentStep.bullets ? `<div class="fsa-bullet-list">` + currentStep.bullets.map(b => `
+                                        <div class="fsa-bullet fsa-bullet-blue">${b}</div>
+                                    `).join('') + `</div>` : ''}
+                                </div>
+                            </div>
+                            <div class="fsa-btn-group">
+                                ${currentStep.options.map((opt, i) => `
+                                    <button onclick="App.setFSAStep(${typeof opt.next !== 'undefined' ? opt.next : `'${opt.action}'`})" class="fsa-btn ${i === 0 ? 'fsa-btn-primary' : 'fsa-btn-secondary'}">
+                                        <span>${opt.label}</span>
+                                        <span style="font-size: 1.25rem;">${opt.icon}</span>
+                                    </button>
+                                `).join('')}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+        };
+
+        window.onload = () => App.init();
+    </script>
+<script>
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('sw.js')
+                .then(registration => console.log('ServiceWorker registered'))
+                .catch(err => console.log('ServiceWorker registration failed: ', err));
+        });
+    }
+</script>
+</body>
+</html>
