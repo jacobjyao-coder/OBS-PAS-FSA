@@ -198,7 +198,7 @@
         .bg-blue-50 { background: var(--blue-50); border-color: var(--blue-200); color: var(--blue-800); }
         .bg-red-50 { background: var(--red-50); border-color: var(--red-200); color: var(--red-800); }
         .bg-green-50 { background: var(--green-50); border-color: var(--green-200); color: var(--green-900); }
-        .fsa-restart { display: flex; justify-content: center; align-items: center; gap: 0.75rem; width: 100%; max-width: 20rem; background: var(--slate-800); color: white; border: none; padding: 1rem; border-radius: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; cursor: pointer; margin-top: 2.5rem; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
+        .fsa-restart { display: flex; justify-content: center; align-items: center; gap: 0.75rem; width: 100%; max-width: 20rem; background: var(--slate-800); color: white; border: none; padding: 1rem; border-radius: 0.75rem; font-weight: 700; letter-spacing: 0.05em; cursor: pointer; margin-top: 2.5rem; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
         .fsa-restart:active { transform: scale(0.95); }
         
         /* Bottom Navigation */
@@ -843,7 +843,7 @@
                     <div class="mb-4 flex flex-col">
                         <span class="text-cyan font-bold">Details:</span>
                         <div class="border-left-yellow text-yellow">
-                            ${d.details.name || 'Unknown'}, ${d.details.sex || '?'}/${d.details.age || '?'}. Loc: ${d.details.loc || '?'}
+                            ${d.details.name || 'Unknown'}, ${d.details.sex || '?'}/${d.details.age || '?'}. <br>Loc: ${d.details.loc || '?'}
                         </div>
                     </div>
                     
@@ -880,7 +880,7 @@
                     <div class="text-cyan mt-4">Over.</div>
                 `;
 
-                const opsTextOnly = `Ops Room, Ops Room, this is [Name]. \n I have a casualty. Standby to copy message. \n\nDetails:\n${d.details.name || 'Unknown'}, ${d.details.sex || '?'}/${d.details.age || '?'} | Loc: ${d.details.loc || '?'}\n\nMOI:\n${moiText}\nC.C.: ${d.scene.complaintDesc || 'None'}\n\nInjuries:\n${injArr.length > 0 ? injArr.map(([k,v]) => `${k}: ${v}`).join('\n') : "None logged"}\n\nSigns:\nLOR ${d.vitals.lor || '-'}, HR ${d.vitals.hr || '-'}, RR ${d.vitals.rr || '-'}\n\nTreatment:\n${(d.summary.treatment || 'None').trim()}\n\nRequests:\n${(d.summary.reqs || 'None').trim()}\n\nOver.`;
+                const opsTextOnly = `Ops Room, Ops Room, this is [Name]. \n I have a casualty. Standby to copy message. \n\nDetails:\n${d.details.name || 'Unknown'}, ${d.details.sex || '?'}/${d.details.age || '?'} | \nLoc: ${d.details.loc || '?'}\n\nMOI:\n${moiText}\nC.C.: ${d.scene.complaintDesc || 'None'}\n\nInjuries:\n${injArr.length > 0 ? injArr.map(([k,v]) => `${k}: ${v}`).join('\n') : "None logged"}\n\nSigns:\nLOR ${d.vitals.lor || '-'}, HR ${d.vitals.hr || '-'}, RR ${d.vitals.rr || '-'}\n\nTreatment:\n${(d.summary.treatment || 'None').trim()}\n\nRequests:\n${(d.summary.reqs || 'None').trim()}\n\nOver.`;
 
                 const fullHandover = `Name: ${d.details.name || 'Unknown'} (${d.details.sex || '?'}/${d.details.age || '?'})\nLocation: ${d.details.loc || 'Unknown'}\nMechanism: ${moiText}\nChief Complaint: ${d.scene.complaintDesc || 'None'}\n\nINJURIES:\n${injArr.length > 0 ? injArr.map(([k,v]) => `- ${k}: ${v}`).join('\n') : "No injuries logged"}\n\nVITALS HISTORY:\n${vitalsSection}\n\nPAIN (OPQRST):\n${opqrstSection}\n\nHISTORY (SAMPLE):\nSymptoms: ${d.history.symptoms}\nAllergies: ${d.history.allergies}\nMedication/Intoxication: ${d.history.meds}\nPertinent Medical History: ${d.history.past}\nLast Intake/Output: ${d.history.last}\nEvents: ${d.history.events}\n\nTREATMENT:\n${(d.summary.treatment || 'None').trim()}\n\nEXPECTED ISSUES:\n${(d.summary.problems || 'None listed').trim()}\n\nREQUESTS:\n${(d.summary.reqs || 'None').trim()}`;
 
@@ -938,7 +938,7 @@
                 const renderResult = (title, message, colorClass, icon) => `
                     <div class="fsa-result ${colorClass}">
                         <div class="mb-6"><span style="font-size: 4rem;">${icon}</span></div>
-                        <h2 class="font-black mb-4 uppercase" style="font-size: 1.875rem;">${title}</h2>
+                        <h2 class="font-black mb-4" style="font-size: 1.875rem;">${title}</h2>
                         <p class="font-bold mb-6">${message}</p>
                         <button onclick="App.setFSAStep(0)" class="fsa-restart">
                             <span class="text-xl">🔄</span> Restart
