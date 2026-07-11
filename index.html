@@ -660,49 +660,49 @@
                 }
             },
 
-            renderScene() {
-                const s = this.data.scene;
-                const toggleHtml = (id, label, field) => `
-                    <label class="scene-item">
-                        <input type="checkbox" class="custom-checkbox" ${s[field] ? 'checked' : ''} onchange="App.updateData('scene', '${field}', this.checked);">
-                        <span class="scene-label ${s[field] ? 'checked' : ''}">${id}. ${label}</span>
+                renderScene() {
+            const s = this.data.scene;
+            const toggleHtml = (id, label, field) => `
+                <label class="scene-item">
+                    <input type="checkbox" class="custom-checkbox" ${s[field] ? 'checked' : ''} onchange="App.updateData('scene', '${field}', this.checked)">
+                    <span class="scene-label ${s[field] ? 'checked' : ''}">${id}. ${label}</span>
+                </label>
+            `;
+            document.getElementById('scene-container').innerHTML = `
+                ${toggleHtml(1, 'I am No. 1. (Safety first! Check for danger.)', '1')}
+                <div class="card mb-2">
+                    <label class="flex items-center gap-3 ${s['2'] ? 'mb-2' : ''} cursor-pointer">
+                        <input type="checkbox" class="custom-checkbox" ${s['2'] ? 'checked' : ''} onchange="App.updateData('scene', '2', this.checked)">
+                        <span class="scene-label ${s['2'] ? 'checked' : ''}">2. What happened to you? (MOI)</span>
                     </label>
-                `;
-                document.getElementById('scene-container').innerHTML = `
-                    ${toggleHtml(1, 'I am No. 1. (Safety first! Check for danger.)', '1')}
-                    <div class="card mb-2">
-                        <label class="flex items-center gap-3 ${s['2'] ? 'mb-2' : ''} cursor-pointer">
-                            <input type="checkbox" class="custom-checkbox" ${s[field] ? 'checked' : ''} onchange="App.updateData('scene', '${field}', this.checked)">
-                            <span class="scene-label ${s['2'] ? 'checked' : ''}">2. What happened to you? (MOI)</span>
+                    ${s['2'] ? `<input type="text" placeholder="Describe mechanism of injury..." class="input" value="${s.moiDesc}" oninput="App.updateData('scene', 'moiDesc', this.value)">` : ''}
+                </div>
+                ${toggleHtml(3, 'Not on me! (Don PPE.)', '3')}
+                ${toggleHtml(4, 'Any more? (Casualties.)', '4')}
+                ${toggleHtml(5, 'Dead or alive? (Status check.)', '5')}
+                
+                <div class="critical-box">
+                    <h3 class="critical-title">Critical 3Cs</h3>
+                    <div class="space-y-4">
+                        <label class="critical-row">
+                            <input type="checkbox" class="custom-checkbox" ${s.consent ? 'checked' : ''} onchange="App.updateData('scene', 'consent', this.checked)">
+                            <span>Consent</span>
                         </label>
-                        ${s['2'] ? `<input type="text" placeholder="Describe mechanism of injury..." class="input" value="${s.moiDesc}" oninput="App.updateData('scene', 'moiDesc', this.value)">` : ''}
-                    </div>
-                    ${toggleHtml(3, 'Not on me! (Don PPE.)', '3')}
-                    ${toggleHtml(4, 'Any more? (Casualties.)', '4')}
-                    ${toggleHtml(5, 'Dead or alive? (Status check.)', '5')}
-                    
-                    <div class="critical-box">
-                        <h3 class="critical-title">Critical 3Cs</h3>
-                        <div class="space-y-4">
-                            <label class="critical-row">
-                                <input type="checkbox" class="custom-checkbox" ${s.consent ? 'checked' : ''} onchange="App.updateData('scene', 'consent', this.checked)">
-                                <span>Consent</span>
+                        <label class="critical-row">
+                            <input type="checkbox" class="custom-checkbox" ${s.cspine ? 'checked' : ''} onchange="App.updateData('scene', 'cspine', this.checked)">
+                            <span>Control (C-Spine and Situation)</span>
+                        </label>
+                        <div>
+                            <label class="critical-row ${s.complaint ? 'mb-2' : ''}">
+                                <input type="checkbox" class="custom-checkbox" ${s.complaint ? 'checked' : ''} onchange="App.updateData('scene', 'complaint', this.checked)">
+                                <span>Chief Complaint</span>
                             </label>
-                            <label class="critical-row">
-                                <input type="checkbox" class="custom-checkbox" ${s.cspine ? 'checked' : ''} onchange="App.updateData('scene', 'cspine', this.checked)">
-                                <span>Control (C-Spine and Situation)</span>
-                            </label>
-                            <div>
-                                <label class="critical-row ${s.complaint ? 'mb-2' : ''}">
-                                    <input type="checkbox" class="custom-checkbox" ${s.complaint ? 'checked' : ''} onchange="App.updateData('scene', 'complaint', this.checked)">
-                                    <span>Chief Complaint</span>
-                                </label>
-                                ${s.complaint ? `<input type="text" placeholder="State chief complaint..." class="input" value="${s.complaintDesc}" oninput="App.updateData('scene', 'complaintDesc', this.value)">` : ''}
-                            </div>
+                            ${s.complaint ? `<input type="text" placeholder="State chief complaint..." class="input" value="${s.complaintDesc}" oninput="App.updateData('scene', 'complaintDesc', this.value)">` : ''}
                         </div>
                     </div>
-                `;
-            },
+                </div>
+            `;
+        },
 
             setPrimaryStatus(key, status) {
                 this.updateData('primary', key, status);
