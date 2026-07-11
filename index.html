@@ -470,8 +470,18 @@
             updateData(category, field, value) {
                 this.data[category][field] = value;
                 this.saveData();
-                if(category === 'scene') this.renderScene();
-                if(category === 'details' && field === 'name') this.renderPatientSelector();
+                
+                // Only re-render if it's a structural change (checkboxes, not text)
+                // You can add specific field names here that require a re-render
+                const structuralFields = ['1', '2', '3', '4', '5', 'consent', 'cspine', 'complaint'];
+                
+                if (category === 'scene' && structuralFields.includes(field)) {
+                    this.renderScene();
+                }
+                
+                if (category === 'details' && field === 'name') {
+                    this.renderPatientSelector();
+                }
             },
 
             switchTab(tabId) {
@@ -660,7 +670,7 @@
                 }
             },
 
-                renderScene() {
+            renderScene() {
             const s = this.data.scene;
             const toggleHtml = (id, label, field) => `
                 <label class="scene-item">
