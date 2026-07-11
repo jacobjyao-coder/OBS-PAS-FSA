@@ -84,6 +84,7 @@
         .italic { font-style: italic; }
         .opacity-70 { opacity: 0.7; }
         .divider { border: 0; border-top: 1px solid var(--slate-300); margin: 0.5rem 0; }
+        .whitespace-pre-wrap { white-space: pre-wrap; }
         
         /* Section Headers */
         .section-header { display: flex; align-items: center; gap: 0.5rem; border-bottom: 2px solid var(--brand-green); margin-bottom: 1rem; padding-bottom: 0.5rem; }
@@ -97,7 +98,6 @@
         .input-p3 { padding: 0.75rem; }
         .input-h10 { height: 2.5rem; }
         .grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; }
-        .grid-gap-2 { gap: 0.5rem; }
         .flex { display: flex; }
         .items-center { align-items: center; }
         .items-start { align-items: flex-start; }
@@ -129,7 +129,7 @@
         /* Head-to-Toe Section */
         .htt-guide { background: var(--slate-200); padding: 0.75rem; border-radius: 0.5rem; border: 1px solid var(--slate-300); font-size: 1rem; color: var(--slate-900); margin-bottom: 1.5rem; }
         .list-disc { list-style-type: disc; list-style-position: inside; margin-left: 1rem; }
-        .col-span-2 { grid-column: span 2 / span 2; }
+        .col-span-2 { grid-column: span 2; }
         
         /* Buttons Section */
         .btn-full { width: 100%; display: flex; justify-content: center; align-items: center; gap: 0.5rem; padding: 0.75rem; border-radius: 0.5rem; font-weight: 700; color: white; border: none; cursor: pointer; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); transition: background-color 0.2s; }
@@ -161,10 +161,6 @@
         .report-med .report-header { border-color: rgba(0, 0, 0, 0.15); color: black; }
         .report-med .report-display { background: var(--brand-yellow-light); border-color: rgba(0, 0, 0, 0.1); font-weight: 500; white-space: pre-wrap; color: black; }
         
-        .btn-yellow { background: var(--brand-yellow); color: black; }
-        .btn-yellow:hover { background: var(--brand-yellow-hover); }
-        
-        .text-cyan { color: white; }
         .text-yellow { color: var(--brand-yellow); }
         .border-left-yellow { border-left: 2px solid var(--brand-yellow); padding-left: 1rem; margin-left: 0.25rem; margin-top: 0.25rem; }
         
@@ -180,8 +176,11 @@
         .fsa-question { font-size: 1.5rem; font-weight: 900; color: var(--slate-900); line-height: 1.25; margin-bottom: 1rem; }
         .fsa-desc { color: var(--slate-600); font-size: 1rem; margin-bottom: 0.75rem; }
         .fsa-bullet-list { margin-bottom: 0.5rem; display: flex; flex-direction: column; gap: 0.5rem; }
-        .fsa-bullet-item { display: flex; align-items: flex-start; gap: 0.75rem; padding: 0.75rem; background: var(--slate-50); border-radius: 0.75rem; border: 1px solid var(--slate-100); font-weight: 700; font-size: 1rem; color: var(--slate-700); box-shadow: 0 1px 2px 0 rgba(0,0,0,0.05); }
-        .fsa-bullet-blue { border-left: 4px solid var(--brand-green); align-items: center; }
+        .fsa-bullet-item {display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem; 
+                          background: var(--slate-50); border-radius: 0.75rem; border: 1px solid var(--slate-100); 
+                          font-weight: 700; font-size: 1rem; color: var(--slate-700); box-shadow: 0 1px 2px 0 rgba(0,0,0,0.05);
+                          border-left: 4px solid var(--brand-green); 
+}
         .fsa-btn-group { display: flex; flex-direction: column; gap: 0.75rem; margin-top: auto; }
         .fsa-btn { display: flex; align-items: center; justify-content: space-between; padding: 1rem; border-radius: 0.75rem; border: 2px solid; font-weight: 900; font-size: 1.125rem; cursor: pointer; transition: transform 0.1s; }
         .fsa-btn:active { transform: scale(0.98); }
@@ -226,7 +225,7 @@
         </div>
     </div>
 
-    <div class="app-main" id="main-container">
+    <div class="app-main">
         
         <div id="tab-action" class="tab-content active space-y-8">
             <div class="space-y-4">
@@ -257,7 +256,7 @@
                         <div><strong class="uppercase block mb-1 underline">Feel For:</strong><ul class="list-disc"><li>Deformity</li><li>Instability</li><li>Crepitus</li><li>Tenderness</li><li>Swelling</li></ul></div>
                     </div>
                     <hr class="divider"/>
-                    <div class="grid-2 grid-gap-2 mt-1">
+                    <div class="grid-2 gap-2 mt-1">
                         <span><strong>Head:</strong> Raccoon Eyes, Battle Signs</span><span><strong>Neck:</strong> Tracheal Deviation</span>
                         <span><strong>Chest:</strong> Asymmetry</span><span><strong>Abdomen:</strong> Rigidity</span>
                         <span class="col-span-2"><strong>Extremities:</strong> Circulation, Sensation, Motion (CSM)</span>
@@ -276,7 +275,7 @@
                 <div class="card card-p4 space-y-4">
                     <div class="grid-2">
                         <input type="text" id="det-name" placeholder="Name" class="input" oninput="App.updateData('details', 'name', this.value)">
-                        <div class="grid-2 grid-gap-2">
+                        <div class="grid-2 gap-2">
                             <input type="text" id="det-sex" placeholder="Sex" class="input" oninput="App.updateData('details', 'sex', this.value)">
                             <input type="text" id="det-age" placeholder="Age" class="input" oninput="App.updateData('details', 'age', this.value)">
                         </div>
@@ -328,39 +327,39 @@
             </div>
         </div>
 
-        <div id="tab-report" class="tab-content space-y-8 pb-10">
-            <div class="card card-p4 report-card report-ops">
+        <div id="tab-report" class="tab-content space-y-8">
+           <div class="card card-p4 report-ops">
                 <div class="report-header">
                     <h2><span class="mr-2">📻</span>Ops Room Brief (via Comms)</h2>
                 </div>
                 <div id="ops-brief-display" class="report-display"></div>
             </div>
             
-            <div class="card card-p4 report-card report-med">
+            <div class="card card-p4 report-med">
                 <div class="report-header">
                     <h2><span class="mr-2">⚕️</span>Medical Report</h2>
                 </div>
                 <pre id="handover-display" class="report-display"></pre>
                 
-                <div class="grid-2 grid-gap-2">
-                    <button onclick="App.copyReport('handover')" class="btn-full btn-brand mb-0">
+                <div class="grid-2 gap-2">
+                    <button onclick="App.copyReport('handover')" class="btn-full btn-brand">
                         <span class="text-lg mr-1">📋</span> Copy
                     </button>
-                    <button onclick="App.downloadReport()" class="btn-full btn-slate mb-0">
+                    <button onclick="App.downloadReport()" class="btn-full btn-slate">
                         <span class="text-lg mr-1">💾</span> Save .txt
                     </button>
                 </div>
             </div>
             
             <!-- Master Delete Button Moved Here -->
-            <div class="mt-8 pt-6 border-t" style="border-top: 2px solid var(--slate-300);">
+            <div class="mt-8 pt-6" style="border-top: 2px solid var(--slate-300);">
                 <button onclick="App.deleteAllData()" class="btn-full btn-bad">
                     <span class="text-lg mr-1">🗑️</span> CLEAR ALL SYSTEM DATA
                 </button>
             </div>
         </div>
 
-        <div id="tab-fsa" class="tab-content pb-8">
+        <div id="tab-fsa" class="tab-content">
             <div id="fsa-wizard-container" class="fsa-wrapper"></div>
         </div>
     </div>
@@ -445,7 +444,6 @@
 
             saveData() {
                 try { localStorage.setItem('obs_vanilla_data_v2', JSON.stringify(this.patients)); } catch (e) { console.warn("Storage blocked: ", e); }
-                this.renderPatientSelector();
             },
 
             createNewPatient() {
@@ -472,7 +470,7 @@
             updateData(category, field, value) {
                 this.data[category][field] = value;
                 this.saveData();
-                if(category === 'scene' && (field === '2' || field === 'complaint')) this.renderScene();
+                if(category === 'scene') this.renderScene();
                 if(category === 'details' && field === 'name') this.renderPatientSelector();
             },
 
@@ -560,7 +558,7 @@
                         <label class="input-label">Injury Location</label>
                         <input type="text" class="input" value="${draft.location}" oninput="App.updateOpqrstDraft('location', this.value)" placeholder="e.g., right ankle, lower back...">
                     </div>
-                    <div class="grid-2 grid-gap-2 mb-4">
+                    <div class="grid-2 gap-2 mb-4">
                 `;
                 
                 this.opqrstMap.forEach(item => {
@@ -666,7 +664,7 @@
                 const s = this.data.scene;
                 const toggleHtml = (id, label, field) => `
                     <label class="scene-item">
-                        <input type="checkbox" class="custom-checkbox" ${s[field] ? 'checked' : ''} onchange="App.updateData('scene', '${field}', this.checked); App.renderScene()">
+                        <input type="checkbox" class="custom-checkbox" ${s[field] ? 'checked' : ''} onchange="App.updateData('scene', '${field}', this.checked);">
                         <span class="scene-label ${s[field] ? 'checked' : ''}">${id}. ${label}</span>
                     </label>
                 `;
@@ -674,7 +672,7 @@
                     ${toggleHtml(1, 'I am No. 1. (Safety first! Check for danger.)', '1')}
                     <div class="card mb-2">
                         <label class="flex items-center gap-3 ${s['2'] ? 'mb-2' : ''} cursor-pointer">
-                            <input type="checkbox" class="custom-checkbox" ${s['2'] ? 'checked' : ''} onchange="App.updateData('scene', '2', this.checked)">
+                            <input type="checkbox" class="custom-checkbox" ${s[field] ? 'checked' : ''} onchange="App.updateData('scene', '${field}', this.checked)">
                             <span class="scene-label ${s['2'] ? 'checked' : ''}">2. What happened to you? (MOI)</span>
                         </label>
                         ${s['2'] ? `<input type="text" placeholder="Describe mechanism of injury..." class="input" value="${s.moiDesc}" oninput="App.updateData('scene', 'moiDesc', this.value)">` : ''}
@@ -699,7 +697,7 @@
                                     <input type="checkbox" class="custom-checkbox" ${s.complaint ? 'checked' : ''} onchange="App.updateData('scene', 'complaint', this.checked)">
                                     <span>Chief Complaint</span>
                                 </label>
-                                ${s.complaint ? `<input type="text" placeholder="State chief complaint..." class="input bg-white" value="${s.complaintDesc}" oninput="App.updateData('scene', 'complaintDesc', this.value)">` : ''}
+                                ${s.complaint ? `<input type="text" placeholder="State chief complaint..." class="input" value="${s.complaintDesc}" oninput="App.updateData('scene', 'complaintDesc', this.value)">` : ''}
                             </div>
                         </div>
                     </div>
@@ -808,9 +806,9 @@
                     <div><label class="input-label">Chief Complaint</label><div class="input italic opacity-70 mb-4">${ccDerived}</div></div>
                     <div><label class="input-label">MOI</label><div class="input italic opacity-70 mb-4">${moiDerived}</div></div>
                     <div><label class="input-label">Injuries</label><div class="input italic opacity-70 mb-4">${injuriesDerived}</div></div>
-                    <div class="mb-4"><label class="input-label">Treatment</label><textarea rows="3" class="input bg-white" placeholder="List treatments performed..." oninput="App.updateData('summary', 'treatment', this.value)">${d.summary.treatment}</textarea></div>
-                    <div class="mb-4"><label class="input-label">Expected Issues/Problems</label><textarea rows="3" class="input bg-white" placeholder="Anticipated complications..." oninput="App.updateData('summary', 'problems', this.value)">${d.summary.problems}</textarea></div>
-                    <div><label class="input-label">Requests/Requisitions</label><textarea rows="2" class="input bg-white" placeholder="Evac needed? Equipment needed?" oninput="App.updateData('summary', 'reqs', this.value)">${d.summary.reqs}</textarea></div>
+                    <div class="mb-4"><label class="input-label">Treatment</label><textarea rows="3" class="input" placeholder="List treatments performed..." oninput="App.updateData('summary', 'treatment', this.value)">${d.summary.treatment}</textarea></div>
+                    <div class="mb-4"><label class="input-label">Expected Issues/Problems</label><textarea rows="3" class="input" placeholder="Anticipated complications..." oninput="App.updateData('summary', 'problems', this.value)">${d.summary.problems}</textarea></div>
+                    <div><label class="input-label">Requests/Requisitions</label><textarea rows="2" class="input" placeholder="Evac needed? Equipment needed?" oninput="App.updateData('summary', 'reqs', this.value)">${d.summary.reqs}</textarea></div>
                 `;
             },
 
@@ -836,46 +834,46 @@
                 }
 
                 const opsHtml = `
-                    <div class="mb-4"><span class="text-cyan">Ops Room, Ops Room. This is </span><span class="text-yellow font-bold">[Name]</span>. <br> I have a casualty. Standby to copy message.</div>
+                    <div class="mb-4"><span>Ops Room, Ops Room. This is </span><span class="text-yellow font-bold">[Name]</span>. <br> I have a casualty. Standby to copy message.</div>
                     
-                    <div class="mb-4 flex flex-col">
-                        <span class="text-cyan font-bold">Details:</span>
+                    <div class="mb-4">
+                        <span class="font-bold">Details:</span>
                         <div class="border-left-yellow text-yellow">
                             ${d.details.name || 'Unknown'}, ${d.details.sex || '?'}/${d.details.age || '?'}. <br>Loc: ${d.details.loc || '?'}
                         </div>
                     </div>
                     
-                    <div class="mb-4 flex flex-col">
-                        <span class="text-cyan font-bold">MOI:</span>
+                    <div class="mb-4">
+                        <span class="font-bold">MOI:</span>
                         <div class="border-left-yellow text-yellow">
                             <div>${moiText}</div>
                             <div>C.C.: ${d.scene.complaintDesc || 'None'}</div>
                         </div>
                     </div>
                     
-                    <div class="mb-4 flex flex-col">
-                        <span class="text-cyan font-bold">Injuries:</span>
+                    <div class="mb-4">
+                        <span class="font-bold">Injuries:</span>
                         ${injHtmlOps}
                     </div>
                     
-                    <div class="mb-4 flex flex-col">
-                        <span class="text-cyan font-bold">Signs:</span>
+                    <div class="mb-4">
+                        <span class="font-bold">Signs:</span>
                         <div class="border-left-yellow text-yellow">
                             LOR ${d.vitals.lor || '-'}, HR ${d.vitals.hr || '-'}, RR ${d.vitals.rr || '-'}
                         </div>
                     </div>
                     
-                    <div class="mb-4 flex flex-col">
-                        <span class="text-cyan font-bold">Treatment:</span>
+                    <div class="mb-4">
+                        <span class="font-bold">Treatment:</span>
                         <div class="border-left-yellow text-yellow whitespace-pre-wrap">${(d.summary.treatment || 'None').trim()}</div>
                     </div>
                     
-                    <div class="mb-4 flex flex-col">
-                        <span class="text-cyan font-bold">Requests:</span>
+                    <div class="mb-4">
+                        <span class="font-bold">Requests:</span>
                         <div class="border-left-yellow text-yellow whitespace-pre-wrap">${(d.summary.reqs || 'None').trim()}</div>
                     </div>
                     
-                    <div class="text-cyan mt-4">Over.</div>
+                    <div class="mt-4">Over.</div>
                 `;
 
                 const opsTextOnly = `Ops Room, Ops Room, this is [Name]. \n I have a casualty. Standby to copy message. \n\nDetails:\n${d.details.name || 'Unknown'}, ${d.details.sex || '?'}/${d.details.age || '?'} | \nLoc: ${d.details.loc || '?'}\n\nMOI:\n${moiText}\nC.C.: ${d.scene.complaintDesc || 'None'}\n\nInjuries:\n${injArr.length > 0 ? injArr.map(([k,v]) => `${k}: ${v}`).join('\n') : "None logged"}\n\nSigns:\nLOR ${d.vitals.lor || '-'}, HR ${d.vitals.hr || '-'}, RR ${d.vitals.rr || '-'}\n\nTreatment:\n${(d.summary.treatment || 'None').trim()}\n\nRequests:\n${(d.summary.reqs || 'None').trim()}\n\nOver.`;
@@ -895,9 +893,9 @@
 
             copyReport(type) {
                 const text = type === 'ops' ? this.opsTextData : this.handoverData;
-                navigator.clipboard.writeText(text).then(() => alert("Report copied to clipboard.")).catch(() => {
-                    const ta = document.createElement("textarea"); ta.value = text; document.body.appendChild(ta);
-                    ta.select(); document.execCommand('copy'); document.body.removeChild(ta); alert("Report copied to clipboard.");
+                navigator.clipboard.writeText(text).then(() => alert("Report copied to clipboard.")).catch(err => {
+                    console.error("Clipboard copy failed:", err);
+                    alert("Failed to copy to clipboard.");
                 });
             },
 
@@ -939,7 +937,7 @@
                         <h2 class="font-black mb-4" style="font-size: 1.875rem;">${title}</h2>
                         <p class="font-bold mb-6">${message}</p>
                         <button onclick="App.setFSAStep(0)" class="fsa-restart">
-                            <span class="text-xl">🔄</span> Restart
+                            <span class="text-2xl">🔄</span> Restart
                         </button>
                     </div>
                 `;
@@ -969,13 +967,13 @@
                                 <div class="mb-4">
                                     ${currentStep.description ? `<p class="fsa-desc">${currentStep.description}</p>` : ''}
                                     ${currentStep.detailedList ? `<div class="fsa-bullet-list">` + currentStep.detailedList.map(item => `
-                                        <div class="fsa-bullet fsa-bullet-blue">
+                                        <div class="fsa-bullet-item">
                                             <span style="font-size: 1.25rem;">${item.icon}</span>
                                             <span>${item.text}</span>
                                         </div>
                                     `).join('') + `</div>` : ''}
                                     ${currentStep.bullets ? `<div class="fsa-bullet-list">` + currentStep.bullets.map(b => `
-                                        <div class="fsa-bullet fsa-bullet-blue">${b}</div>
+                                        <div class="fsa-bullet-item">${b}</div>
                                     `).join('') + `</div>` : ''}
                                 </div>
                             </div>
