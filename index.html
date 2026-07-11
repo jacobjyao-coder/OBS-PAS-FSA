@@ -43,8 +43,6 @@
         input, textarea, button, select { font-family: inherit; }
         input:focus, textarea:focus, select:focus { outline: 2px solid var(--brand-green); outline-offset: -2px; border-radius: 4px; }
         
-        .no-scrollbar::-webkit-scrollbar { display: none; }
-        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
         .custom-checkbox { width: 1.25rem; height: 1.25rem; accent-color: var(--brand-green); cursor: pointer; flex-shrink: 0; }
         
         /* Layout */
@@ -135,8 +133,8 @@
         
         /* Buttons Section */
         .btn-full { width: 100%; display: flex; justify-content: center; align-items: center; gap: 0.5rem; padding: 0.75rem; border-radius: 0.5rem; font-weight: 700; color: white; border: none; cursor: pointer; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); transition: background-color 0.2s; }
-        .btn-violet, .btn-blue { background: var(--brand-green); }
-        .btn-violet:hover, .btn-blue:hover { background: var(--brand-green-hover); }
+        .btn-brand { background: var(--brand-green); }
+        .btn-brand:hover { background: var(--brand-green-hover); }
         .btn-bad:hover { background: var(--red-700); }
         .btn-slate { background: var(--slate-800); }
         .btn-slate:hover { background: var(--slate-900); }
@@ -294,7 +292,7 @@
                 </div>
                 <div class="card card-p4">
                     <div class="space-y-4 mb-4" id="vitals-inputs"></div>
-                    <button onclick="App.logVitals()" class="btn-full btn-violet mb-4"><span class="text-lg mr-1">🕒</span> Log Vitals (Time Stamp)</button>
+                    <button onclick="App.logVitals()" class="btn-full btn-brand mb-4"><span class="text-lg mr-1">🕒</span> Log Vitals (Time Stamp)</button>
                     <div id="vitals-log-container"></div>
                 </div>
             </div>
@@ -345,7 +343,7 @@
                 <pre id="handover-display" class="report-display"></pre>
                 
                 <div class="grid-2 grid-gap-2">
-                    <button onclick="App.copyReport('handover')" class="btn-full btn-blue mb-0">
+                    <button onclick="App.copyReport('handover')" class="btn-full btn-brand mb-0">
                         <span class="text-lg mr-1">📋</span> Copy
                     </button>
                     <button onclick="App.downloadReport()" class="btn-full btn-slate mb-0">
@@ -575,7 +573,7 @@
                 });
                 
                 html += `</div>
-                    <button onclick="App.saveOpqrstLog()" class="btn-full btn-blue mb-2">
+                    <button onclick="App.saveOpqrstLog()" class="btn-full btn-brand mb-2">
                         <span class="text-lg mr-1">${draft.id ? '💾' : '➕'}</span> ${draft.id ? 'Update Pain Log' : 'Log Pain Info'}
                     </button>
                 `;
@@ -676,7 +674,7 @@
                     ${toggleHtml(1, 'I am No. 1. (Safety first! Check for danger.)', '1')}
                     <div class="card mb-2">
                         <label class="flex items-center gap-3 ${s['2'] ? 'mb-2' : ''} cursor-pointer">
-                            <input type="checkbox" class="custom-checkbox" ${s['2'] ? 'checked' : ''} onchange="App.updateData('scene', '2', this.checked); App.renderScene()">
+                            <input type="checkbox" class="custom-checkbox" ${s['2'] ? 'checked' : ''} onchange="App.updateData('scene', '2', this.checked)">
                             <span class="scene-label ${s['2'] ? 'checked' : ''}">2. What happened to you? (MOI)</span>
                         </label>
                         ${s['2'] ? `<input type="text" placeholder="Describe mechanism of injury..." class="input" value="${s.moiDesc}" oninput="App.updateData('scene', 'moiDesc', this.value)">` : ''}
@@ -698,7 +696,7 @@
                             </label>
                             <div>
                                 <label class="critical-row ${s.complaint ? 'mb-2' : ''}">
-                                    <input type="checkbox" class="custom-checkbox" ${s.complaint ? 'checked' : ''} onchange="App.updateData('scene', 'complaint', this.checked); App.renderScene()">
+                                    <input type="checkbox" class="custom-checkbox" ${s.complaint ? 'checked' : ''} onchange="App.updateData('scene', 'complaint', this.checked)">
                                     <span>Chief Complaint</span>
                                 </label>
                                 ${s.complaint ? `<input type="text" placeholder="State chief complaint..." class="input bg-white" value="${s.complaintDesc}" oninput="App.updateData('scene', 'complaintDesc', this.value)">` : ''}
@@ -802,7 +800,7 @@
 
            renderSummary() {
                 const d = this.data;
-                const moiDerived = d.scene.moiDesc || (d.scene['2'] ? 'No mechanism logged' : 'No mechanism logged');
+                const moiDerived = d.scene.moiDesc || 'No mechanism logged';
                 const injuriesDerived = Object.entries(d.injuries).length > 0 ? Object.entries(d.injuries).map(([k,v]) => `${k}: ${v}`).join('<br>') : "No injuries logged";
                 const ccDerived = d.scene.complaintDesc || "No complaint logged";
                 
