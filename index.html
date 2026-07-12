@@ -505,6 +505,10 @@
                     this.renderScene();
                 }
                 
+                if (category === 'httChecks') {
+                    this.renderHtt();
+                }
+                
                 if (category === 'details' && field === 'name') {
                     this.renderPatientSelector();
                 }
@@ -543,16 +547,7 @@
 
                 this.renderScene();
                 this.renderPrimary();
-
-                document.getElementById('htt-container').innerHTML = this.bodyParts.map(part => `
-                    <div class="card">
-                        <div class="flex items-center gap-3 mb-2">
-                            <input type="checkbox" class="custom-checkbox" onchange="App.data.httChecks['${part}'] = this.checked; App.saveData()" ${d.httChecks[part] ? 'checked' : ''}>
-                            <label class="font-bold">${part}</label>
-                        </div>
-                        <input type="text" oninput="App.setInjury('${part}', this.value)" class="input" value="${App.escapeHTML(d.injuries[part]) || ''}">
-                    </div>
-                `).join('');
+                this.renderHtt();
 
                 document.getElementById('vitals-inputs').innerHTML = this.vitalsConfig.map(v => `
                     <div>
@@ -739,10 +734,34 @@
                 </div>
             `;
         },
+        
+            renderHtt() {
+                const d = this.data;
+                document.getElementById('htt-container').innerHTML = this.bodyParts.map(part => `
+                    <div class="card">
+                        <label class="flex items-center gap-3 mb-2 cursor-pointer">
+                            <input type="checkbox" class="custom-checkbox" onchange="App.updateData('httChecks', '${part}', this.checked)" ${d.httChecks[part] ? 'checked' : ''}>
+                            <span class="font-bold">${part}</span>
+                        </label>
+                        <input type="text" oninput="App.setInjury('${part}', this.value)" class="input" value="${App.escapeHTML(d.injuries[part]) || ''}" placeholder="Describe injury...">
+                    </div>
+                `).join('');
+            },
 
             setPrimaryStatus(key, status) {
                 this.updateData('primary', key, status);
                 this.renderPrimary();
+                
+                // UX Improvement: Auto-scroll to the critical alert if a "bad" condition is triggered
+                if (status === 'bad') {
+                    setTimeout(() => {
+                        const alertElement = document.getElementById('primary-alert');
+                        // Ensure the alert actually contains content before scrolling
+                        if (alertElement && alertElement.innerHTML.trim() !== '') {
+                            alertElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        }
+                    }, 50);
+                }
             },
 
             renderPrimary() {
