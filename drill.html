@@ -1,0 +1,733 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>OBS PAS + FSA | Scenario Roller</title>
+    <meta name="theme-color" content="#545e28">
+    <link rel="apple-touch-icon" href="icon-512.png">
+    
+    <style>
+        :root {
+            --slate-50: #f8fafc; --slate-100: #f1f5f9; --slate-200: #e2e8f0; --slate-300: #cbd5e1;
+            --slate-400: #94a3b8; --slate-500: #64748b; --slate-600: #475569; --slate-700: #334155;
+            --slate-800: #1e293b; --slate-900: #0f172a;
+            --blue-50: #eff6ff; --blue-200: #bfdbfe; --blue-800: #1e40af;
+            --red-50: #fef2f2; --red-100: #fee2e2; --red-200: #fecaca; --red-600: #dc2626; --red-700: #b91c1c; --red-800: #991b1b;
+            --green-50: #f0fdf4; --green-100: #dcfce7; --green-200: #bbf7d0; --green-700: #15803d; --green-900: #14532d;
+            --amber-50: #fffbeb; --amber-200: #fde68a; --amber-500: #f59e0b; --amber-900: #78350f;
+            
+            --brand-green: #545e28;
+            --brand-green-hover: #464f21;
+            --brand-green-dark: #3a421a;
+            --brand-green-light: #e9ebd8; 
+            --brand-yellow: #e6b320;
+            --brand-yellow-hover: #cfa11c;
+            --brand-yellow-light: #fdf2cd;
+        }
+
+        *, *::before, *::after { box-sizing: border-box; }
+        body { 
+            margin: 0; 
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; 
+            background: var(--slate-100); 
+            color: var(--slate-900); 
+            padding-bottom: 3rem;
+            -webkit-font-smoothing: antialiased; 
+        }
+        h1, h2, h3, p, ul { margin: 0; padding: 0; }
+        button, select { font-family: inherit; }
+
+        .app-header { 
+            background: var(--brand-green); 
+            color: white; 
+            padding: 0.875rem 1rem; 
+            position: sticky; 
+            top: 0; 
+            z-index: 10; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); 
+        }
+        .header-title { display: flex; align-items: center; gap: 0.75rem; }
+        .header-title h1 { font-size: clamp(1rem, 4.5vw, 1.4rem); font-weight: 800; font-style: italic; letter-spacing: -0.025em; }
+        .badge-trainer { background: var(--brand-yellow); color: black; font-size: 0.75rem; font-weight: 900; padding: 0.25rem 0.5rem; border-radius: 0.25rem; text-transform: uppercase; letter-spacing: 0.05em; }
+
+        .app-main { max-width: 42rem; margin: 0 auto; padding: 1rem; }
+
+        /* Controls Bar */
+        .controls-card {
+            background: white;
+            padding: 1rem;
+            border-radius: 0.75rem;
+            border: 2px solid var(--brand-green);
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+            margin-bottom: 1.25rem;
+        }
+        .filter-label { display: block; font-size: 0.8rem; font-weight: 800; text-transform: uppercase; color: var(--slate-600); margin-bottom: 0.375rem; letter-spacing: 0.05em; }
+        .filter-select {
+            width: 100%;
+            padding: 0.625rem;
+            border-radius: 0.375rem;
+            border: 1px solid var(--slate-300);
+            background: var(--slate-50);
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: var(--slate-800);
+            margin-bottom: 0.75rem;
+        }
+        .btn-roll {
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.875rem;
+            border-radius: 0.5rem;
+            font-size: 1.125rem;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 0.025em;
+            background: var(--brand-green);
+            color: white;
+            border: none;
+            cursor: pointer;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.15);
+            transition: transform 0.1s, background-color 0.2s;
+        }
+        .btn-roll:hover { background: var(--brand-green-hover); }
+        .btn-roll:active { transform: scale(0.98); }
+
+        /* Scenario Cards */
+        .space-y-4 > * + * { margin-top: 1rem; }
+        .card { background: white; padding: 1rem; border-radius: 0.625rem; border: 1px solid var(--slate-200); box-shadow: 0 1px 3px 0 rgba(0,0,0,0.05); }
+        .card-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--brand-green); padding-bottom: 0.5rem; margin-bottom: 0.75rem; }
+        .card-header h2 { font-size: 1.05rem; font-weight: 900; text-transform: uppercase; color: var(--slate-800); display: flex; align-items: center; gap: 0.4rem; }
+        .step-tag { font-size: 0.75rem; font-weight: 800; color: var(--slate-500); text-transform: uppercase; }
+
+        .roleplay-prompt {
+            background: var(--brand-green-light);
+            border-left: 4px solid var(--brand-green);
+            padding: 0.625rem 0.75rem;
+            border-radius: 0.25rem;
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--slate-800);
+            margin-bottom: 0.75rem;
+        }
+
+        .data-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.625rem; }
+        .data-box { background: var(--slate-50); padding: 0.5rem 0.625rem; border-radius: 0.375rem; border: 1px solid var(--slate-200); }
+        .data-box.full { grid-column: span 2; }
+        .data-label { font-size: 0.75rem; font-weight: 800; text-transform: uppercase; color: var(--slate-500); margin-bottom: 0.125rem; }
+        .data-val { font-size: 0.95rem; font-weight: 700; color: var(--slate-900); line-height: 1.35; }
+
+        .badge { font-size: 0.75rem; font-weight: 900; padding: 0.2rem 0.45rem; border-radius: 0.25rem; text-transform: uppercase; display: inline-block; }
+        .badge-ok { background: var(--green-100); color: var(--green-700); }
+        .badge-bad { background: var(--red-100); color: var(--red-700); }
+        .badge-warn { background: var(--amber-200); color: var(--amber-900); }
+
+        .vitals-block { background: var(--slate-50); border: 1px solid var(--slate-200); border-radius: 0.5rem; padding: 0.75rem; margin-bottom: 0.625rem; }
+        .vitals-block:last-child { margin-bottom: 0; }
+        .vitals-title { font-family: monospace; font-size: 0.875rem; font-weight: 800; color: var(--brand-green); margin-bottom: 0.5rem; display: flex; justify-content: space-between; }
+        .vitals-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.4rem; font-size: 0.875rem; font-weight: 600; color: var(--slate-700); }
+        .vitals-grid strong { color: var(--slate-900); }
+
+        /* Assessor Answer Key */
+        .answer-key {
+            background: var(--slate-800);
+            color: white;
+            border-radius: 0.75rem;
+            padding: 1.25rem;
+            border-left: 8px solid var(--brand-yellow);
+            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);
+        }
+        .answer-key h2 { color: var(--brand-yellow); font-size: 1.15rem; font-weight: 900; text-transform: uppercase; margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.5rem; }
+        .key-item { background: rgba(255,255,255,0.08); padding: 0.75rem; border-radius: 0.5rem; margin-bottom: 0.625rem; font-size: 0.9rem; line-height: 1.4; }
+        .key-item:last-child { margin-bottom: 0; }
+        .key-label { font-size: 0.75rem; font-weight: 800; text-transform: uppercase; color: var(--brand-yellow); margin-bottom: 0.25rem; }
+
+        .fsa-pill { display: inline-block; padding: 0.25rem 0.625rem; border-radius: 0.375rem; font-weight: 900; font-size: 0.875rem; margin-top: 0.25rem; }
+        .fsa-green { background: var(--green-100); color: var(--green-900); }
+        .fsa-red { background: var(--red-100); color: var(--red-800); }
+        .fsa-blue { background: var(--blue-50); color: var(--blue-800); }
+
+        .footer-note { text-align: center; font-size: 0.75rem; font-weight: 700; color: var(--slate-400); margin-top: 2rem; letter-spacing: 0.05em; }
+    </style>
+</head>
+<body>
+
+    <div class="app-header">
+        <div class="header-title">
+            <img src="icon-512.png" alt="OBS" onerror="this.style.display='none'" style="width: 2.25rem; height: 2.25rem; object-fit: contain; border-radius: 4px;">
+            <h1>Scenario Roller</h1>
+        </div>
+        <span class="badge-trainer">Assessor Card</span>
+    </div>
+
+    <div class="app-main">
+        <div class="controls-card">
+            <label class="filter-label" for="mode-select">Drill Focus / Scenario Filter</label>
+            <select id="mode-select" class="filter-select">
+                <option value="all">🎲 Any Random Scenario (Full Mix)</option>
+                <option value="pos_moi">🦴 Positive MOI Only (Test FSA Decision Tree)</option>
+                <option value="clear_spine">✅ FSA Clear Spine Only (Passes All 5 Steps)</option>
+                <option value="treat_spinal">⚠️ FSA Treat as Spinal Only (Fails Reliability/CSM/Palpation)</option>
+                <option value="critical_abc">🚨 Critical Primary (ABCDE) Issue Only</option>
+            </select>
+            <button onclick="Drill.roll()" class="btn-roll">
+                <span>🎲</span> Roll New Casualty Scenario
+            </button>
+        </div>
+
+        <div id="scenario-output" class="space-y-4"></div>
+
+        <div class="footer-note">
+            OBS PAS + FSA TRAINING TOOL &bull; v3.0
+        </div>
+    </div>
+
+    <script>
+        const Drill = {
+            rollCount: 0,
+
+            // 1. Independent Casualty Pool (20)
+            casualties: [
+                { name: "Ali Rahman", sex: "M", age: 18 },
+                { name: "Tan Wei Ming", sex: "M", age: 19 },
+                { name: "Siti Nurhaliza", sex: "F", age: 17 },
+                { name: "Bala Subramaniam", sex: "M", age: 21 },
+                { name: "Chloe Lim", sex: "F", age: 18 },
+                { name: "Marcus Teo", sex: "M", age: 20 },
+                { name: "Farhan Ahmad", sex: "M", age: 19 },
+                { name: "Rachel Ng", sex: "F", age: 16 },
+                { name: "Dinesh Kumar", sex: "M", age: 22 },
+                { name: "Hannah Goh", sex: "F", age: 18 },
+                { name: "Lucas Wong", sex: "M", age: 17 },
+                { name: "Nurul Aini", sex: "F", age: 20 },
+                { name: "Gabriel Chua", sex: "M", age: 19 },
+                { name: "Priya Nair", sex: "F", age: 18 },
+                { name: "Zackary Ho", sex: "M", age: 23 },
+                { name: "Jasmine Tay", sex: "F", age: 17 },
+                { name: "Irfan Hakim", sex: "M", age: 20 },
+                { name: "Megan Koh", sex: "F", age: 19 },
+                { name: "Kelvin Yeo", sex: "M", age: 21 },
+                { name: "Sarah Abdullah", sex: "F", age: 18 }
+            ],
+
+            // 2. Terrain-Tagged OBS Locations (14)
+            locations: [
+                { name: "Puaka Hill Summit Trail", type: "trail" },
+                { name: "Bukit Tinggi Jungle Track", type: "trail" },
+                { name: "Botak Hill Descending Slope", type: "trail" },
+                { name: "Ketam Mountain Bike Trail", type: "trail" },
+                { name: "Outward Bound Camp 1 Parade Square", type: "camp" },
+                { name: "Outward Bound Camp 2 Field Kitchen", type: "camp" },
+                { name: "Kekek Quarry Bouldering Wall", type: "rock" },
+                { name: "Camp 1 High Ropes Challenge Course", type: "rock" },
+                { name: "Mamam BeachKayak Landing Point", type: "sea" },
+                { name: "Ubin Channel (Open Water Kayak)", type: "sea" },
+                { name: "Chek Jawa Coastal Boardwalk", type: "sea" },
+                { name: "Sungei Jelutong Mangrove Channel", type: "sea" },
+                { name: "Noordin Beach Campsite", type: "camp" },
+                { name: "Sensory Trail Mudflat Crossing", type: "trail" }
+            ],
+
+            // 3. Independent SAMPLE Histories (15)
+            samplePool: [
+                { allergies: "NKDA (No known drug allergies)", meds: "None", past: "Nil", last: "Breakfast at 07:00, 500ml water 1 hr ago; normal urine" },
+                { allergies: "Penicillin (causes rash)", meds: "None", past: "Mild childhood asthma", last: "Oat ration bar 2 hrs ago, 300ml water; dark yellow urine" },
+                { allergies: "Ibuprofen / NSAIDs", meds: "Ventolin inhaler (in pack)", past: "Exercise-induced asthma", last: "Lunch at 12:30, 1L water throughout morning" },
+                { allergies: "Shellfish", meds: "Loratadine (antihistamine) taken this morning", past: "Previous ankle sprain last year", last: "Light breakfast at 06:30, minimal water since" },
+                { allergies: "NKDA", meds: "Paracetamol taken 3 hrs ago for headache", past: "Nil", last: "Ration biscuits 1 hr ago, 400ml water" },
+                { allergies: "Latex (mild skin irritation)", meds: "None", past: "Nil", last: "Full meal 3 hrs ago, 600ml water; normal output" },
+                { allergies: "Aspirin", meds: "None", past: "History of heat exhaustion 2 years ago", last: "Skipped breakfast, only sipped 200ml water today" },
+                { allergies: "NKDA", meds: "Daily multivitamin", past: "Previous right shoulder subluxation", last: "Trail mix & cashews 45 mins ago, 500ml isotonic drink" }
+            ],
+
+            // 4. Clinical Archetypes (Medically Consistent MOI + Primary + HTT + Vitals + OPQRST + FSA Outcome)
+            archetypes: [
+                {
+                    id: "clear_1",
+                    category: "clear_spine",
+                    posMoi: true,
+                    terrains: ["trail", "rock"],
+                    moiList: [
+                        "Slipped on loose granite boulders while carrying a 15kg pack; fell ~1.5m landing hard on back and right forearm",
+                        "Tripped over exposed tree root descending steep slope; tumbled 2m down embankment onto back"
+                    ],
+                    cc: "Pain and bruising on right forearm; shaken from fall",
+                    primary: { a: "Clear", b: "Normal", c_bleed: "Controlled/None", c_sweep: "No Bleeding", c_pulse: "Pulse Present", d: "Immobilized (initially)", e: "Wounds Found (Right Forearm)" },
+                    htt: {
+                        "Arm + Hand (R)": "Contusion and 4cm superficial abrasion on right forearm; no deformity. Full CSM intact.",
+                        "Spine": "No deformity, no tenderness or pain anywhere along the spine on firm palpation."
+                    },
+                    httExtra: "All other body parts normal. Full CSM intact in all 4 limbs.",
+                    vitals1: { lor: "A&O x 4", hrRange: [94, 104], rrRange: [18, 20], temp: "37.0°C", skin: "Pink, Warm, Slightly Moist", pupils: "PERRL" },
+                    vitals2: { lor: "A&O x 4", hrRange: [78, 86], rrRange: [14, 16], temp: "36.9°C", skin: "Pink, Warm, Dry", pupils: "PERRL" },
+                    opqrst: { loc: "Right Forearm", o: "Sudden, immediately upon landing", p: "Worse when gripping or pronating wrist; better when supported", q: "Dull ache with stinging over scrape", r: "Localized to mid-right forearm (no radiation)", s: "3/10 (not distracting)", t: "Constant since fall 10 mins ago" },
+                    events: "Walking/scrambling with watch group when footing gave way on damp rock.",
+                    fsaResult: "Clear Spine",
+                    fsaColor: "fsa-green",
+                    fsaReason: "Positive MOI -> Patient is Reliable (A&O x 4, sober, forearm scrape is 3/10 non-distracting) -> Full CSM in all 4 limbs -> Zero pain on spine palpation."
+                },
+                {
+                    id: "clear_2",
+                    category: "clear_spine",
+                    posMoi: true,
+                    terrains: ["sea"],
+                    moiList: [
+                        "Kayak capsized in choppy swell near rocks; struck helmeted head against hull while exiting boat",
+                        "Lost balance climbing off kayak onto slippery coastal rocks; fell ~1.2m flat onto lifejacket/back"
+                    ],
+                    cc: "Mild soreness on left shoulder; no headache or dizziness",
+                    primary: { a: "Clear", b: "Normal", c_bleed: "Controlled/None", c_sweep: "No Bleeding", c_pulse: "Pulse Present", d: "Immobilized (initially)", e: "No Wounds" },
+                    htt: {
+                        "Shoulder (L/R)": "Mild tenderness on left deltoid (contusion); full range of motion.",
+                        "Spine": "Zero pain or tenderness on palpation along entire cervical, thoracic, and lumbar spine."
+                    },
+                    httExtra: "Head check negative for Raccoon Eyes/Battle Signs. Full CSM in all 4 limbs.",
+                    vitals1: { lor: "A&O x 4", hrRange: [90, 98], rrRange: [16, 20], temp: "36.7°C", skin: "Pink, Cool, Wet (from sea)", pupils: "PERRL" },
+                    vitals2: { lor: "A&O x 4", hrRange: [74, 82], rrRange: [14, 16], temp: "36.8°C", skin: "Pink, Warm, Dry", pupils: "PERRL" },
+                    opqrst: { loc: "Left Shoulder", o: "Immediate after bumping kayak", p: "Slight ache when lifting arm overhead", q: "Dull bruise-like ache", r: "Outer left shoulder only", s: "2/10 (minimal)", t: "Steady for last 15 mins" },
+                    events: "Coming in for beach landing / rafting up when wave pushed kayak sideways.",
+                    fsaResult: "Clear Spine",
+                    fsaColor: "fsa-green",
+                    fsaReason: "Positive MOI (head/back impact) -> Reliable (A&O x 4, sober, no distracting injury) -> Full CSM -> No pain on spinal palpation."
+                },
+                {
+                    id: "spinal_unreliable",
+                    category: "treat_spinal",
+                    posMoi: true,
+                    terrains: ["trail", "rock", "sea"],
+                    moiList: [
+                        "Fell ~2m from boulder/embankment and struck back of head; briefly dazed on impact",
+                        "High-velocity collision / slip landing hard on upper back and occiput"
+                    ],
+                    cc: "Headache and feeling 'foggy' — keeps asking what time it is",
+                    primary: { a: "Clear", b: "Normal", c_bleed: "Controlled/None", c_sweep: "No Bleeding", c_pulse: "Pulse Present", d: "Immobilized", e: "No Wounds" },
+                    htt: {
+                        "Head": " Boggy swelling/contusion at back of head (occiput). No Raccoon Eyes or Battle Signs yet.",
+                        "Neck": "Mild muscle guarding."
+                    },
+                    httExtra: "Full CSM present in all 4 limbs, but patient is repetitive and disoriented to time/events.",
+                    vitals1: { lor: "A&O x 2 (Disoriented to time & event)", hrRange: [88, 96], rrRange: [16, 20], temp: "37.1°C", skin: "Pale, Warm, Moist", pupils: "PERRL (slightly sluggish)" },
+                    vitals2: { lor: "A&O x 2 (Still confused)", hrRange: [84, 92], rrRange: [16, 18], temp: "37.0°C", skin: "Pale, Warm, Dry", pupils: "PERRL" },
+                    opqrst: { loc: "Back of Head", o: "Immediately after fall", p: "Worse with bright light or moving head", q: "Throbbing pressure", r: "Back of head radiating to forehead", s: "5/10", t: "Constant" },
+                    events: "Fell backward during activity; teammates noted casualty took 10 seconds to respond initially.",
+                    fsaResult: "Treat as Spinal (Stop at Step 3: Unreliable)",
+                    fsaColor: "fsa-red",
+                    fsaReason: "Positive MOI -> Fails Step 3 (Reliability): Patient is A&O x 2 with altered consciousness. Must maintain spinal immobilization and evacuate."
+                },
+                {
+                    id: "spinal_distracting",
+                    category: "treat_spinal",
+                    posMoi: true,
+                    terrains: ["trail", "rock"],
+                    moiList: [
+                        "Fell ~2.5m down steep ravine while carrying pack; landed awkwardly with right leg twisted underneath",
+                        "Slipped from high step/boulder (>1.5m), landing heavily on hip and twisting lower leg"
+                    ],
+                    cc: "Severe, agonizing pain in right lower leg — casualty is grimacing and crying out",
+                    primary: { a: "Clear", b: "Normal", c_bleed: "Controlled/None", c_sweep: "No Bleeding", c_pulse: "Pulse Present", d: "Immobilized", e: "Wounds Found (Right Tibia/Ankle)" },
+                    htt: {
+                        "Leg + Foot (R)": "Obvious deformity, rapid swelling, and severe tenderness mid-shaft right tibia/ankle. Distal pulse present.",
+                        "Spine": "Patient is too distressed by leg pain to focus on spinal exam."
+                    },
+                    httExtra: "Suspected closed fracture of right lower leg (Distracting Injury).",
+                    vitals1: { lor: "A&O x 4 (Distressed)", hrRange: [108, 118], rrRange: [20, 24], temp: "37.2°C", skin: "Pale, Cool, Clammy", pupils: "PERRL" },
+                    vitals2: { lor: "A&O x 4", hrRange: [98, 106], rrRange: [18, 20], temp: "37.0°C", skin: "Pale, Warm, Moist", pupils: "PERRL" },
+                    opqrst: { loc: "Right Lower Leg", o: "Sudden snap felt on landing", p: "Any slight movement causes shooting pain; splinting helps slightly", q: "Sharp, throbbing, severe", r: "Right shin and ankle", s: "9/10 (Severe Distracting Injury)", t: "Constant" },
+                    events: "Lost footing on steep descent with full pack.",
+                    fsaResult: "Treat as Spinal (Stop at Step 3: Distracting Injury)",
+                    fsaColor: "fsa-red",
+                    fsaReason: "Positive MOI (>1m fall) -> Fails Step 3 (Reliability): 9/10 suspected leg fracture is a classic Distracting Injury. Cannot reliably clear spine."
+                },
+                {
+                    id: "spinal_csm",
+                    category: "treat_spinal",
+                    posMoi: true,
+                    terrains: ["trail", "rock", "sea"],
+                    moiList: [
+                        "Fell ~1.8m backward onto a submerged log/rock landing squarely on mid-back",
+                        "High-impact slip down steep mud embankment, hyperextending neck and back against pack frame"
+                    ],
+                    cc: "Stiff lower back and strange 'pins and needles' tingling in both feet",
+                    primary: { a: "Clear", b: "Normal", c_bleed: "Controlled/None", c_sweep: "No Bleeding", c_pulse: "Pulse Present", d: "Immobilized", e: "No Wounds" },
+                    htt: {
+                        "Leg + Foot (R)": "Circulation present, but reduced sensation ('numb/tingling') in toes and weak pedal push/pull.",
+                        "Leg + Foot (L)": "Reduced sensation ('pins and needles') in foot and weak plantar flexion."
+                    },
+                    httExtra: "Upper limbs have intact CSM, but lower limbs fail CSM check.",
+                    vitals1: { lor: "A&O x 4", hrRange: [92, 102], rrRange: [16, 20], temp: "36.8°C", skin: "Pink, Warm, Dry", pupils: "PERRL" },
+                    vitals2: { lor: "A&O x 4", hrRange: [88, 96], rrRange: [16, 18], temp: "36.8°C", skin: "Pink, Warm, Dry", pupils: "PERRL" },
+                    opqrst: { loc: "Lower Back & Both Feet", o: "Immediately after landing on back", p: "Trying to move legs increases tingling", q: "Dull ache in back; electric tingling/numbness in feet", r: "Lumbar spine radiating down into both feet", s: "5/10", t: "Constant since impact" },
+                    events: "Slipped and landed directly on spine.",
+                    fsaResult: "Treat as Spinal (Stop at Step 4: Abnormal CSM)",
+                    fsaColor: "fsa-red",
+                    fsaReason: "Positive MOI -> Reliable (A&O x 4) -> Fails Step 4 (Physical CSM): Tingling/numbness and motor weakness in feet."
+                },
+                {
+                    id: "spinal_palpation",
+                    category: "treat_spinal",
+                    posMoi: true,
+                    terrains: ["trail", "rock", "sea"],
+                    moiList: [
+                        "Fell ~1.5m off ledge/bank landing flat on back; felt wind knocked out initially",
+                        "Struck across upper back/neck by heavy swinging branch/spar; knocked to ground"
+                    ],
+                    cc: "Localized soreness right in the middle of the spine",
+                    primary: { a: "Clear", b: "Normal", c_bleed: "Controlled/None", c_sweep: "No Bleeding", c_pulse: "Pulse Present", d: "Immobilized", e: "No Wounds" },
+                    htt: {
+                        "Spine": "Sharp midline point tenderness when palpating T12/L1 vertebrae. Mild paraspinal muscle spasm.",
+                        "Upper Back": "Bruising over midline."
+                    },
+                    httExtra: "Patient is A&O x 4 and has full CSM in all 4 limbs, but winces on spinal palpation.",
+                    vitals1: { lor: "A&O x 4", hrRange: [88, 96], rrRange: [16, 18], temp: "36.9°C", skin: "Pink, Warm, Dry", pupils: "PERRL" },
+                    vitals2: { lor: "A&O x 4", hrRange: [80, 88], rrRange: [14, 16], temp: "36.9°C", skin: "Pink, Warm, Dry", pupils: "PERRL" },
+                    opqrst: { loc: "Mid-to-Lower Spine", o: "Immediate upon impact", p: "Pressing on spine or twisting torso makes it sharp", q: "Sharp, localized bony tenderness", r: "Midline spine (does not radiate)", s: "4/10 at rest, 6/10 on palpation", t: "Constant" },
+                    events: "Direct impact to spine during activity.",
+                    fsaResult: "Treat as Spinal (Stop at Step 5: Pain on Palpation)",
+                    fsaColor: "fsa-red",
+                    fsaReason: "Positive MOI -> Reliable -> Full CSM in all 4 limbs -> Fails Step 5 (Palpation): Point tenderness found along the spine."
+                },
+                {
+                    id: "neg_moi_ankle",
+                    category: "neg_moi",
+                    posMoi: false,
+                    terrains: ["trail", "camp"],
+                    moiList: [
+                        "Walking on flat ground in camp/trail, stepped into a shallow root hole and rolled left ankle inward (No fall from height, no head/back impact)",
+                        "Turned sharply while carrying water jerrycan on level path; twisted left ankle (remained standing/knelt down gently)"
+                    ],
+                    cc: "Swollen, tender left ankle",
+                    primary: { a: "Clear", b: "Normal", c_bleed: "Controlled/None", c_sweep: "No Bleeding", c_pulse: "Pulse Present", d: "Cleared", e: "Wounds Found (Left Ankle swelling)" },
+                    htt: {
+                        "Leg + Foot (L)": "Swelling and tenderness over left lateral malleolus; no crepitus or instability. Distal CSM intact."
+                    },
+                    httExtra: "All other body regions negative. No axial load or spinal mechanism.",
+                    vitals1: { lor: "A&O x 4", hrRange: [86, 94], rrRange: [16, 18], temp: "37.0°C", skin: "Pink, Warm, Dry", pupils: "PERRL" },
+                    vitals2: { lor: "A&O x 4", hrRange: [74, 80], rrRange: [14, 16], temp: "36.8°C", skin: "Pink, Warm, Dry", pupils: "PERRL" },
+                    opqrst: { loc: "Left Lateral Ankle", o: "Sudden when ankle rolled inward", p: "Worse bearing weight; better with RICE & elevation", q: "Throbbing ache", r: "Outer left ankle", s: "4/10 at rest, 6/10 standing", t: "Constant since twist 15 mins ago" },
+                    events: "Simple low-energy inversion sprain on level ground.",
+                    fsaResult: "FSA Not Required (Negative MOI)",
+                    fsaColor: "fsa-blue",
+                    fsaReason: "Step 2 (Mechanism): Negative MOI. Simple isolated ankle roll on level ground without fall from height or high velocity."
+                },
+                {
+                    id: "neg_moi_burn",
+                    category: "neg_moi",
+                    posMoi: false,
+                    terrains: ["camp"],
+                    moiList: [
+                        "Knocked over Trangia/camp stove pot while cooking dinner while kneeling; boiling water splashed across left forearm (No fall)",
+                        "Accidentally grabbed hot metal mess tin lid and spilled hot soup onto left wrist/forearm while seated"
+                    ],
+                    cc: "Burning pain and redness on left forearm",
+                    primary: { a: "Clear", b: "Normal", c_bleed: "Controlled/None", c_sweep: "No Bleeding", c_pulse: "Pulse Present", d: "Cleared", e: "Wounds Found (Left Forearm scald)" },
+                    htt: {
+                        "Arm + Hand (L)": "Superficial partial-thickness burn (redness + two small intact blisters, ~3% TBSA) on anterior left forearm. CSM intact."
+                    },
+                    httExtra: "No trauma or fall mechanism anywhere else.",
+                    vitals1: { lor: "A&O x 4", hrRange: [92, 100], rrRange: [16, 20], temp: "36.9°C", skin: "Pink, Warm, Dry", pupils: "PERRL" },
+                    vitals2: { lor: "A&O x 4", hrRange: [78, 84], rrRange: [14, 16], temp: "36.8°C", skin: "Pink, Warm, Dry", pupils: "PERRL" },
+                    opqrst: { loc: "Left Forearm", o: "Instant when boiling water hit skin", p: "Relieved by cool running water; stings when exposed to air", q: "Sharp stinging / burning sensation", r: "Palmar side of left forearm", s: "5/10 before cooling, 3/10 after cooling", t: "Continuous stinging" },
+                    events: "Preparing group meal at campsite.",
+                    fsaResult: "FSA Not Required (Negative MOI)",
+                    fsaColor: "fsa-blue",
+                    fsaReason: "Step 2 (Mechanism): Negative MOI. Isolated thermal scald burn while seated/kneeling with zero spinal mechanism."
+                },
+                {
+                    id: "critical_bleed",
+                    category: "critical_abc",
+                    posMoi: false,
+                    terrains: ["trail", "camp", "sea"],
+                    moiList: [
+                        "Slipped while stepping over sharp oyster-covered rocks / parang use in camp; deep laceration to right calf with bright red spurting/flowing blood",
+                        "Struck submerged sharp metal/oyster rock while wading kayak ashore; deep 8cm gash on right shin bleeding heavily"
+                    ],
+                    cc: "Heavy bleeding from right lower leg; feeling lightheaded",
+                    primary: { a: "Clear", b: "Normal", c_bleed: "Active Bleed (CRITICAL - Stop & Fix!)", c_sweep: "Bleeding", c_pulse: "Pulse Present (Rapid)", d: "Cleared", e: "Wounds Found (Right Calf Laceration)" },
+                    htt: {
+                        "Leg + Foot (R)": "Deep 8cm laceration on right calf; controlled after direct pressure & pressure bandage applied. Distal CSM intact."
+                    },
+                    httExtra: "Rescuer MUST trigger Red 'Active Bleed' button in Primary (ABCDE), apply direct pressure/dressing, and note immediate Ops Room report.",
+                    vitals1: { lor: "A&O x 4 (Anxious)", hrRange: [110, 122], rrRange: [20, 24], temp: "36.6°C", skin: "Pale, Cool, Clammy", pupils: "PERRL" },
+                    vitals2: { lor: "A&O x 4", hrRange: [94, 102], rrRange: [16, 20], temp: "36.7°C", skin: "Pale, Warm, Dry", pupils: "PERRL" },
+                    opqrst: { loc: "Right Calf", o: "Sudden cut on sharp edge", p: "Elevation and firm bandage pressure reduce throbbing", q: "Sharp slicing pain followed by throbbing", r: "Right lower leg", s: "6/10", t: "Constant" },
+                    events: "Immediate hemorrhage control required during Primary Assessment.",
+                    fsaResult: "CRITICAL PRIMARY ISSUE + FSA Not Required",
+                    fsaColor: "fsa-red",
+                    fsaReason: "Rescuer must tap 'Active Bleed' under C - Circulation (triggers Critical Issue red alert!) and control bleeding before proceeding."
+                },
+                {
+                    id: "critical_breathing",
+                    category: "critical_abc",
+                    posMoi: false,
+                    terrains: ["trail", "sea", "rock"],
+                    moiList: [
+                        "Stung on neck/arm by hornet on trail AND/OR acute severe asthma flare-up during steep climb; audible wheezing and shortness of breath",
+                        "Inhaled water / severe bronchospasm during kayak capsize recovery; struggling to speak full sentences"
+                    ],
+                    cc: "Tight chest, wheezing, and difficulty catching breath",
+                    primary: { a: "Clear", b: "Distressed/Stopped (CRITICAL - Stop & Fix!)", c_bleed: "Controlled/None", c_sweep: "No Bleeding", c_pulse: "Pulse Present", d: "Cleared", e: "No Wounds" },
+                    htt: {
+                        "Chest": "Increased work of breathing, accessory muscle use, audible expiratory wheeze; symmetrical expansion."
+                    },
+                    httExtra: "Rescuer MUST tap 'Distressed/Stopped' under B - Breathing (triggering Critical Issue alert), assist with inhaler/tripod position, and report to Ops Room.",
+                    vitals1: { lor: "A&O x 4 (Anxious)", hrRange: [112, 124], rrRange: [26, 30], temp: "37.1°C", skin: "Pale, Warm, Sweaty", pupils: "PERRL" },
+                    vitals2: { lor: "A&O x 4", hrRange: [94, 102], rrRange: [18, 22], temp: "37.0°C", skin: "Pink, Warm, Dry", pupils: "PERRL" },
+                    opqrst: { loc: "Chest / Airway", o: "Rapid onset over 5 minutes during exertion", p: "Sitting upright (tripod position) and 4 puffs of Ventolin spacer improve breathing", q: "Tight band-like constriction around chest", r: "Bilateral chest", s: "7/10 initially, 3/10 after inhaler", t: "Improving after treatment" },
+                    events: "Sudden respiratory distress during expedition phase.",
+                    fsaResult: "CRITICAL PRIMARY ISSUE (Breathing Distressed)",
+                    fsaColor: "fsa-red",
+                    fsaReason: "Rescuer must tap 'Distressed/Stopped' under B - Breathing to trigger the Critical Alert banner, treat immediately (inhaler/sit upright), and notify Ops Room."
+                }
+            ],
+
+            pick(arr) {
+                return arr[Math.floor(Math.random() * arr.length)];
+            },
+
+            randInt(min, max) {
+                return Math.floor(Math.random() * (max - min + 1)) + min;
+            },
+
+            roll() {
+                this.rollCount++;
+                const mode = document.getElementById('mode-select').value;
+
+                // 1. Filter archetypes by chosen training mode
+                let pool = this.archetypes;
+                if (mode === 'pos_moi') pool = this.archetypes.filter(a => a.posMoi);
+                else if (mode === 'clear_spine') pool = this.archetypes.filter(a => a.category === 'clear_spine');
+                else if (mode === 'treat_spinal') pool = this.archetypes.filter(a => a.category === 'treat_spinal');
+                else if (mode === 'critical_abc') pool = this.archetypes.filter(a => a.category === 'critical_abc');
+
+                const arch = this.pick(pool);
+
+                // 2. Pick a terrain-compatible location
+                const matchingLocations = this.locations.filter(l => arch.terrains.includes(l.type));
+                const loc = this.pick(matchingLocations.length ? matchingLocations : this.locations);
+
+                // 3. Pick random casualty & SAMPLE history
+                const cas = this.pick(this.casualties);
+                const sample = this.pick(this.samplePool);
+                const moi = this.pick(arch.moiList);
+
+                // 4. Generate dynamic realistic vitals
+                const hr1 = this.randInt(arch.vitals1.hrRange[0], arch.vitals1.hrRange[1]);
+                const rr1 = this.randInt(arch.vitals1.rrRange[0], arch.vitals1.rrRange[1]);
+                const hr2 = this.randInt(arch.vitals2.hrRange[0], arch.vitals2.hrRange[1]);
+                const rr2 = this.randInt(arch.vitals2.rrRange[0], arch.vitals2.rrRange[1]);
+
+                this.render({ cas, loc, sample, moi, arch, hr1, rr1, hr2, rr2 });
+            },
+
+            render(s) {
+                const { cas, loc, sample, moi, arch, hr1, rr1, hr2, rr2 } = s;
+
+                const httHtml = Object.entries(arch.htt).map(([part, desc]) => `
+                    <div class="data-box full">
+                        <div class="data-label">${part}</div>
+                        <div class="data-val">${desc}</div>
+                    </div>
+                `).join('');
+
+                const isCrit = arch.category === 'critical_abc';
+
+                document.getElementById('scenario-output').innerHTML = `
+                    <!-- 1. Scene & Patient Details -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h2><span>🪪</span> 1. Scene & Casualty Details</h2>
+                            <span class="step-tag">Scenario #${this.rollCount}</span>
+                        </div>
+                        <div class="roleplay-prompt">
+                            🗣️ <strong>Tell Rescuer on arrival:</strong> You are at <strong>${loc.name}</strong>. Scene is safe (unless stated), 1 casualty (${cas.name}).
+                        </div>
+                        <div class="data-grid">
+                            <div class="data-box">
+                                <div class="data-label">Name</div>
+                                <div class="data-val">${cas.name}</div>
+                            </div>
+                            <div class="data-box">
+                                <div class="data-label">Sex / Age</div>
+                                <div class="data-val">${cas.sex} / ${cas.age}</div>
+                            </div>
+                            <div class="data-box full">
+                                <div class="data-label">Location</div>
+                                <div class="data-val">${loc.name}</div>
+                            </div>
+                            <div class="data-box full">
+                                <div class="data-label">Mechanism of Injury (MOI) — ${arch.posMoi ? '<span class="badge badge-warn">+ Positive MOI</span>' : '<span class="badge badge-ok">- Negative MOI</span>'}</div>
+                                <div class="data-val">${moi}</div>
+                            </div>
+                            <div class="data-box full">
+                                <div class="data-label">Chief Complaint (C.C.)</div>
+                                <div class="data-val">"${arch.cc}"</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 2. Primary (ABCDE) & Head-to-Toe -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h2><span>🩺</span> 2. Primary (ABCDE) & Head-to-Toe</h2>
+                            ${isCrit ? '<span class="badge badge-bad">Critical Alert</span>' : '<span class="badge badge-ok">ABC Stable</span>'}
+                        </div>
+                        <div class="roleplay-prompt">
+                            👀 <strong>Only reveal these findings as the Rescuer checks each step!</strong>
+                        </div>
+                        <div class="data-grid" style="margin-bottom: 0.75rem;">
+                            <div class="data-box">
+                                <div class="data-label">A - Airway</div>
+                                <div class="data-val">${arch.primary.a}</div>
+                            </div>
+                            <div class="data-box">
+                                <div class="data-label">B - Breathing</div>
+                                <div class="data-val" style="${arch.primary.b.includes('CRITICAL') ? 'color: var(--red-600);' : ''}">${arch.primary.b}</div>
+                            </div>
+                            <div class="data-box">
+                                <div class="data-label">C - Major Bleed / Pulse</div>
+                                <div class="data-val" style="${arch.primary.c_bleed.includes('CRITICAL') ? 'color: var(--red-600);' : ''}">${arch.primary.c_bleed} / ${arch.primary.c_pulse}</div>
+                            </div>
+                            <div class="data-box">
+                                <div class="data-label">D - Spine Decision</div>
+                                <div class="data-val">${arch.primary.d}</div>
+                            </div>
+                        </div>
+                        <div class="data-grid">
+                            ${httHtml}
+                            <div class="data-box full" style="background: var(--slate-100);">
+                                <div class="data-label">Other Body Regions / CSM Note</div>
+                                <div class="data-val" style="font-weight: 600; font-size: 0.875rem;">${arch.httExtra}</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 3. Vitals (2 Sets to Test Logging & Trend Reversal) -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h2><span>📈</span> 3. Vitals (Give in 2 Sets)</h2>
+                            <span class="step-tag">Tests Log & Edit</span>
+                        </div>
+                        <div class="vitals-block">
+                            <div class="vitals-title">
+                                <span>SET 1 (Initial Assessment)</span>
+                                <span>Have Rescuer Log This First</span>
+                            </div>
+                            <div class="vitals-grid">
+                                <span><strong>LOR:</strong> ${arch.vitals1.lor}</span>
+                                <span><strong>HR:</strong> ${hr1} bpm</span>
+                                <span><strong>RR:</strong> ${rr1} /min</span>
+                                <span><strong>Temp:</strong> ${arch.vitals1.temp}</span>
+                                <span><strong>Skin:</strong> ${arch.vitals1.skin}</span>
+                                <span><strong>Pupils:</strong> ${arch.vitals1.pupils}</span>
+                            </div>
+                        </div>
+                        <div class="vitals-block">
+                            <div class="vitals-title">
+                                <span>SET 2 (15 Mins Later / Post-Treatment)</span>
+                                <span>Latest Reading for Ops Brief</span>
+                            </div>
+                            <div class="vitals-grid">
+                                <span><strong>LOR:</strong> ${arch.vitals2.lor}</span>
+                                <span><strong>HR:</strong> ${hr2} bpm</span>
+                                <span><strong>RR:</strong> ${rr2} /min</span>
+                                <span><strong>Temp:</strong> ${arch.vitals2.temp}</span>
+                                <span><strong>Skin:</strong> ${arch.vitals2.skin}</span>
+                                <span><strong>Pupils:</strong> ${arch.vitals2.pupils}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 4. OPQRST & SAMPLE Script -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h2><span>🗣️</span> 4. Pain (OPQRST) & History (SAMPLE)</h2>
+                            <span class="step-tag">Casualty Script</span>
+                        </div>
+                        <div class="data-grid" style="margin-bottom: 0.75rem;">
+                            <div class="data-box full">
+                                <div class="data-label">OPQRST Pain Location</div>
+                                <div class="data-val">${arch.opqrst.loc}</div>
+                            </div>
+                            <div class="data-box">
+                                <div class="data-label">O - Onset</div>
+                                <div class="data-val">${arch.opqrst.o}</div>
+                            </div>
+                            <div class="data-box">
+                                <div class="data-label">P - Provoking/Palliating</div>
+                                <div class="data-val">${arch.opqrst.p}</div>
+                            </div>
+                            <div class="data-box">
+                                <div class="data-label">Q - Quality</div>
+                                <div class="data-val">${arch.opqrst.q}</div>
+                            </div>
+                            <div class="data-box">
+                                <div class="data-label">R - Region/Radiation</div>
+                                <div class="data-val">${arch.opqrst.r}</div>
+                            </div>
+                            <div class="data-box">
+                                <div class="data-label">S - Severity</div>
+                                <div class="data-val">${arch.opqrst.s}</div>
+                            </div>
+                            <div class="data-box">
+                                <div class="data-label">T - Timing</div>
+                                <div class="data-val">${arch.opqrst.t}</div>
+                            </div>
+                        </div>
+                        <div class="data-grid">
+                            <div class="data-box">
+                                <div class="data-label">Allergies</div>
+                                <div class="data-val">${sample.allergies}</div>
+                            </div>
+                            <div class="data-box">
+                                <div class="data-label">Medications</div>
+                                <div class="data-val">${sample.meds}</div>
+                            </div>
+                            <div class="data-box">
+                                <div class="data-label">Pertinent History</div>
+                                <div class="data-val">${sample.past}</div>
+                            </div>
+                            <div class="data-box">
+                                <div class="data-label">Last Intake/Output</div>
+                                <div class="data-val">${sample.last}</div>
+                            </div>
+                            <div class="data-box full">
+                                <div class="data-label">Events Leading Up</div>
+                                <div class="data-val">${arch.events}</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 5. Assessor Answer Key -->
+                    <div class="answer-key">
+                        <h2><span>✅</span> Assessor Answer Key (Check Rescuer's Phone)</h2>
+                        <div class="key-item">
+                            <div class="key-label">1. Expected FSA Wizard Outcome</div>
+                            <div class="fsa-pill ${arch.fsaColor}">${arch.fsaResult}</div>
+                            <div style="margin-top: 0.4rem; opacity: 0.9;">${arch.fsaReason}</div>
+                        </div>
+                        <div class="key-item">
+                            <div class="key-label">2. Ops Room Brief Check (Green Card)</div>
+                            <div>Verify their radio readout pulls <strong>SET 2 (Latest) Vitals</strong>:</div>
+                            <div style="font-family: monospace; color: var(--brand-yellow); font-weight: 700; margin-top: 0.25rem;">
+                                Signs: LOR ${arch.vitals2.lor}, HR ${hr2}, RR ${rr2}
+                            </div>
+                        </div>
+                        <div class="key-item">
+                            <div class="key-label">3. Medical Report Check (Yellow Card)</div>
+                            <div>Verify Vitals History lists <strong>Set 1 (${hr1} bpm) first</strong> and <strong>Set 2 (${hr2} bpm) second</strong> (chronological order), with no HTML gibberish.</div>
+                        </div>
+                    </div>
+                `;
+            }
+        };
+
+        window.onload = () => Drill.roll();
+    </script>
+</body>
+</html>
