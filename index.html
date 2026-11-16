@@ -51,6 +51,8 @@
         .header-title span { font-size: clamp(1rem, 4vw, 1.25rem); font-style: normal; flex-shrink: 0; }
         .header-title h1 { font-size: clamp(1rem, 4.8vw, 1.8rem); font-weight: 700; font-style: italic; letter-spacing: -0.025em; white-space: nowrap; }
         
+        .storage-banner { display: none; background: var(--amber-50); color: var(--amber-900); border-bottom: 2px solid var(--amber-500); padding: 0.5rem 1rem; font-size: 0.875rem; font-weight: 700; text-align: center; }
+
         .btn-reset { display: flex; align-items: center; gap: 0.25rem; background: var(--brand-yellow); color: black; border: none; padding: 0.375rem 0.75rem; border-radius: 0.25rem; font-size: 0.875rem; font-weight: 900; letter-spacing: 0.05em; cursor: pointer; transition: background-color 0.2s; }
         .btn-reset:hover { background: var(--brand-yellow-hover); }
         .app-main { max-width: 42rem; margin: 0 auto; padding: 1rem; }
@@ -138,8 +140,10 @@
         .btn-bad:hover { background: var(--red-700); }
         .btn-slate { background: var(--slate-800); }
         .btn-slate:hover { background: var(--slate-900); }
+        .btn-amber { background: var(--amber-500); color: black; }
+        .btn-amber:hover { background: var(--brand-yellow-hover); }
         
-        /* Vitals Log */
+        /* Vitals & Pain Log */
         .log-container { background: var(--slate-100); border: 2px solid var(--slate-200); border-radius: 0.5rem; overflow: hidden; }
         .log-header { background: var(--slate-200); padding: 0.5rem; font-size: 0.875rem; font-weight: 900; color: var(--slate-600); display: flex; justify-content: space-between; align-items: center; }
         .log-list { max-height: 15rem; overflow-y: auto; display: flex; flex-direction: column; }
@@ -176,11 +180,11 @@
         .fsa-question { font-size: 1.5rem; font-weight: 900; color: var(--slate-900); line-height: 1.25; margin-bottom: 1rem; }
         .fsa-desc { color: var(--slate-600); font-size: 1rem; margin-bottom: 0.75rem; }
         .fsa-bullet-list { margin-bottom: 0.5rem; display: flex; flex-direction: column; gap: 0.5rem; }
-        .fsa-bullet-item {display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem; 
-                          background: var(--slate-50); border-radius: 0.75rem; border: 1px solid var(--slate-100); 
-                          font-weight: 700; font-size: 1rem; color: var(--slate-700); box-shadow: 0 1px 2px 0 rgba(0,0,0,0.05);
-                          border-left: 4px solid var(--brand-green); 
-}
+        .fsa-bullet-item { display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem; 
+                           background: var(--slate-50); border-radius: 0.75rem; border: 1px solid var(--slate-100); 
+                           font-weight: 700; font-size: 1rem; color: var(--slate-700); box-shadow: 0 1px 2px 0 rgba(0,0,0,0.05);
+                           border-left: 4px solid var(--brand-green); 
+        }
         .fsa-btn-group { display: flex; flex-direction: column; gap: 0.75rem; margin-top: auto; }
         .fsa-btn { display: flex; align-items: center; justify-content: space-between; padding: 1rem; border-radius: 0.75rem; border: 2px solid; font-weight: 900; font-size: 1.125rem; cursor: pointer; transition: transform 0.1s; }
         .fsa-btn:active { transform: scale(0.98); }
@@ -210,7 +214,7 @@
 </head>
 <body>
 
-  <div class="app-header">
+    <div class="app-header">
         <div class="header-title flex items-center gap-3">
             <img src="icon-512.png" alt="OBS Logo" style="width: 2.5rem; height: 2.5rem; object-fit: contain; border-radius: 4px;">
             <h1>OBS PAS + FSA</h1>
@@ -223,6 +227,11 @@
                 <span class="text-xs">➕</span> New
             </button>
         </div>
+    </div>
+
+    <!-- Silent Failure Guard: Shown only if localStorage is blocked/unavailable -->
+    <div id="storage-warning" class="storage-banner">
+        ⚠️ Offline storage unavailable (Private Browsing?). Data will not save if you close or refresh this tab.
     </div>
 
     <div class="app-main">
@@ -289,9 +298,11 @@
                     <span class="text-2xl mr-2">📈</span>
                     <h2>Vitals</h2>
                 </div>
-                <div class="card card-p4">
+                <div class="card card-p4" id="vitals-container">
                     <div class="space-y-4 mb-4" id="vitals-inputs"></div>
-                    <button onclick="App.logVitals()" class="btn-full btn-brand mb-4"><span class="text-lg mr-1">🕒</span> Log Vitals (Time Stamp)</button>
+                    <button id="vitals-submit-btn" onclick="App.saveVitalsLog()" class="btn-full btn-brand mb-4">
+                        <span class="text-lg mr-1">🕒</span> Log Vitals (Time Stamp)
+                    </button>
                     <div id="vitals-log-container"></div>
                 </div>
             </div>
@@ -351,8 +362,11 @@
                 </div>
             </div>
             
-            <!-- Master Delete Button Moved Here -->
-            <div class="mt-8 pt-6" style="border-top: 2px solid var(--slate-300);">
+            <!-- Delete Controls -->
+            <div class="mt-8 pt-6 space-y-3" style="border-top: 2px solid var(--slate-300);">
+                <button onclick="App.deleteCurrentPatient()" class="btn-full btn-amber">
+                    <span class="text-lg mr-1">👤</span> DELETE CURRENT CASUALTY
+                </button>
                 <button onclick="App.deleteAllData()" class="btn-full btn-bad">
                     <span class="text-lg mr-1">🗑️</span> CLEAR ALL SYSTEM DATA
                 </button>
@@ -371,10 +385,9 @@
     <script>
         const App = {
             activeTab: 'action',
-            fsaStep: 0,
-            
             patients: [],
             currentPatientIndex: 0,
+            EXPIRY_MS: 86400000, // 24 hours in milliseconds
 
             get data() {
                 return this.patients[this.currentPatientIndex];
@@ -413,9 +426,16 @@
                 this.loadData();
                 this.renderNav();
                 this.updateAllUI();
+
+                // Check 24-hour per-casualty expiration whenever the user wakes the phone or switches back to the tab
+                document.addEventListener('visibilitychange', () => {
+                    if (document.visibilityState === 'visible') {
+                        this.checkExpiredPatients();
+                    }
+                });
             },
             
-            // XSS mitigation helper
+            // XSS mitigation helper for HTML templates only
             escapeHTML(str) {
                 if (typeof str !== 'string') return str;
                 return str.replace(/[&<>'"]/g, tag => ({
@@ -427,90 +447,163 @@
                 }[tag]));
             },
 
+            showStorageWarning(show) {
+                const banner = document.getElementById('storage-warning');
+                if (banner) banner.style.display = show ? 'block' : 'none';
+            },
+
             getBlankPatient() {
                 return {
                     id: Date.now(),
+                    createdAt: null, // Stamped upon first edit so unused blank sheets don't expire prematurely
+                    fsaStep: 0,      // Tracked per casualty
                     details: { name: '', sex: '', age: '', loc: '' },
                     scene: { '1': false, '2': false, moiDesc: '', '3': false, '4': false, '5': false, consent: false, cspine: false, complaint: false, complaintDesc: '' },
                     primary: { a: 'unchecked', b: 'unchecked', c_bleed: 'unchecked', c_sweep: 'unchecked', c_pulse: 'unchecked', d: 'unchecked', e: 'unchecked' },
-                    injuries: {}, httChecks: {}, vitals: { lor: '', hr: '', rr: '', skin: '', pupils: '', temp: '' }, vitalsLog: [],
-                    opqrstDraft: { id: null, location: '', o: '', p: '', q: '', r: '', s: '', t: '' }, opqrstLog: [], 
-                    history: { symptoms: '', allergies: '', meds: '', past: '', last: '', events: '' }, summary: { treatment: '', problems: '', reqs: '' }
+                    injuries: {}, httChecks: {}, 
+                    vitals: { id: null, timestamp: null, lor: '', hr: '', rr: '', skin: '', pupils: '', temp: '' }, 
+                    vitalsLog: [],
+                    opqrstDraft: { id: null, location: '', o: '', p: '', q: '', r: '', s: '', t: '' }, 
+                    opqrstLog: [], 
+                    history: { symptoms: '', allergies: '', meds: '', past: '', last: '', events: '' }, 
+                    summary: { treatment: '', problems: '', reqs: '' }
+                };
+            },
+
+            // Schema Migration Guard: safely upgrades older localStorage patient records in place
+            normalizePatient(p) {
+                const blank = this.getBlankPatient();
+                return {
+                    ...blank,
+                    ...p,
+                    createdAt: typeof p.createdAt !== 'undefined' ? p.createdAt : Date.now(),
+                    fsaStep: typeof p.fsaStep !== 'undefined' ? p.fsaStep : 0,
+                    details: { ...blank.details, ...(p.details || {}) },
+                    scene: { ...blank.scene, ...(p.scene || {}) },
+                    primary: { ...blank.primary, ...(p.primary || {}) },
+                    injuries: p.injuries || {},
+                    httChecks: p.httChecks || {},
+                    vitals: { ...blank.vitals, ...(p.vitals || {}) },
+                    vitalsLog: Array.isArray(p.vitalsLog) ? p.vitalsLog.map((entry, idx) => ({
+                        id: entry.id || (Date.now() + idx),
+                        timestamp: entry.timestamp || '--:--',
+                        data: { ...entry.data }
+                    })) : [],
+                    opqrstDraft: { ...blank.opqrstDraft, ...(p.opqrstDraft || {}) },
+                    opqrstLog: Array.isArray(p.opqrstLog) ? p.opqrstLog : [],
+                    history: { ...blank.history, ...(p.history || {}) },
+                    summary: { ...blank.summary, ...(p.summary || {}) }
                 };
             },
 
             loadData() {
                 try {
                     const saved = localStorage.getItem('obs_vanilla_data_v2'); 
-                    const lastSaved = localStorage.getItem('obs_last_saved');
-                    const now = Date.now();
-                    
-                    // 24-hour Auto-clear policy (86400000 ms) for data privacy
-                    if (lastSaved && (now - parseInt(lastSaved)) > 86400000) {
-                        alert("Session Expired: Patient data older than 24 hours has been securely cleared to protect privacy.");
-                        localStorage.removeItem('obs_vanilla_data_v2');
-                        localStorage.removeItem('obs_last_saved');
-                        this.patients = [this.getBlankPatient()];
-                        return;
-                    }
-                    
                     if (saved) {
-                        this.patients = JSON.parse(saved);
-                        if(this.patients.length === 0) this.patients.push(this.getBlankPatient());
+                        const parsed = JSON.parse(saved);
+                        if (Array.isArray(parsed) && parsed.length > 0) {
+                            this.patients = parsed.map(p => this.normalizePatient(p));
+                            this.checkExpiredPatients(true);
+                        } else {
+                            this.patients = [this.getBlankPatient()];
+                        }
                     } else {
                         this.patients = [this.getBlankPatient()];
                     }
+                    this.showStorageWarning(false);
                 } catch (e) { 
                     this.patients = [this.getBlankPatient()];
+                    this.showStorageWarning(true);
                     console.warn("Storage blocked: ", e); 
                 }
             },
 
-            saveData() {
+            checkExpiredPatients(isInitialLoad = false) {
+                const now = Date.now();
+                const initialCount = this.patients.length;
+
+                // Keep casualties that haven't been touched yet (createdAt === null) or are younger than 24 hours
+                this.patients = this.patients.filter(p => !p.createdAt || (now - p.createdAt) <= this.EXPIRY_MS);
+
+                const removedCount = initialCount - this.patients.length;
+                if (removedCount > 0) {
+                    if (this.patients.length === 0) {
+                        this.patients = [this.getBlankPatient()];
+                    }
+                    // Clamp index so it never points out of bounds
+                    if (this.currentPatientIndex >= this.patients.length) {
+                        this.currentPatientIndex = this.patients.length - 1;
+                    }
+                    this.saveData(false);
+                    if (!isInitialLoad) {
+                        this.updateAllUI();
+                    }
+                    alert(`Privacy Policy: ${removedCount} casualty record(s) older than 24 hours have been securely cleared.`);
+                }
+            },
+
+            saveData(stampCreation = true) {
+                if (stampCreation && this.data && !this.data.createdAt) {
+                    this.data.createdAt = Date.now();
+                }
                 try { 
                     localStorage.setItem('obs_vanilla_data_v2', JSON.stringify(this.patients)); 
-                    localStorage.setItem('obs_last_saved', Date.now().toString());
-                } catch (e) { console.warn("Storage blocked: ", e); }
+                    this.showStorageWarning(false);
+                } catch (e) { 
+                    this.showStorageWarning(true);
+                    console.warn("Storage blocked: ", e); 
+                }
             },
 
             createNewPatient() {
                 this.patients.push(this.getBlankPatient());
                 this.currentPatientIndex = this.patients.length - 1;
-                this.fsaStep = 0;
-                this.saveData();
+                this.saveData(false); // Do not stamp createdAt until the user actually enters data
                 this.updateAllUI();
             },
 
             switchPatient(index) {
-                this.currentPatientIndex = parseInt(index);
-                this.fsaStep = 0;
+                this.currentPatientIndex = parseInt(index, 10);
                 this.updateAllUI();
             },
 
+            deleteCurrentPatient() {
+                const name = this.data.details.name || `Casualty ${this.currentPatientIndex + 1}`;
+                if (confirm(`Delete all records for "${name}"? This cannot be undone.`)) {
+                    this.patients.splice(this.currentPatientIndex, 1);
+                    if (this.patients.length === 0) {
+                        this.patients.push(this.getBlankPatient());
+                    }
+                    if (this.currentPatientIndex >= this.patients.length) {
+                        this.currentPatientIndex = this.patients.length - 1;
+                    }
+                    this.saveData(false);
+                    this.switchTab('action');
+                    this.updateAllUI();
+                    setTimeout(() => window.scrollTo(0, 0), 10);
+                }
+            },
+
             deleteAllData() {
-                if(confirm("CRITICAL WARNING: This will delete ALL patient data and logs. Are you sure?")) {
+                if (confirm("CRITICAL WARNING: This will delete ALL patient data and logs across all casualties. Are you sure?")) {
                     try { 
                         localStorage.removeItem('obs_vanilla_data_v2'); 
                         localStorage.removeItem('obs_last_saved'); 
                     } catch (e) {}
                     
-                    // Reset application state memory instantly instead of reloading the page
                     this.patients = [this.getBlankPatient()];
                     this.currentPatientIndex = 0;
-                    this.fsaStep = 0;
                     
-                    // Route back to the main Action tab and refresh UI
                     this.switchTab('action');
                     this.updateAllUI();
                     
-                    // Use a tiny timeout to ensure the DOM fully renders before scrolling to top
                     setTimeout(() => window.scrollTo(0, 0), 10);
                 }
             },
 
             updateData(category, field, value) {
                 this.data[category][field] = value;
-                this.saveData();
+                this.saveData(true);
                 
                 // Only re-render structural DOM elements to prevent focus loss on text inputs
                 const structuralFields = ['1', '2', '3', '4', '5', 'consent', 'cspine', 'complaint'];
@@ -532,9 +625,9 @@
                 this.activeTab = tabId;
                 document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
                 document.getElementById(`tab-${tabId}`).classList.add('active');
-                if(tabId === 'data') this.renderSummary();
-                if(tabId === 'report') this.renderReports();
-                if(tabId === 'fsa') this.renderFSA();
+                if (tabId === 'data') this.renderSummary();
+                if (tabId === 'report') this.renderReports();
+                if (tabId === 'fsa') this.renderFSA();
                 this.renderNav();
                 window.scrollTo(0, 0);
             },
@@ -562,14 +655,7 @@
                 this.renderScene();
                 this.renderPrimary();
                 this.renderHtt();
-
-                document.getElementById('vitals-inputs').innerHTML = this.vitalsConfig.map(v => `
-                    <div>
-                        <label class="input-label">${v.label}</label>
-                        <input type="text" class="input input-h10 font-bold" value="${App.escapeHTML(d.vitals[v.id])}" oninput="App.updateData('vitals', '${v.id}', this.value)">
-                    </div>
-                `).join('');
-
+                this.renderVitalsSection();
                 this.renderOpqrst();
 
                 document.getElementById('sample-container').innerHTML = Object.entries(this.sampleMap).map(([k, label]) => `
@@ -579,21 +665,145 @@
                     </div>
                 `).join('');
 
-                this.renderVitalsLog();
                 this.renderSummary();
-                if(this.activeTab === 'report') this.renderReports();
-                if(this.activeTab === 'fsa') this.renderFSA();
+                if (this.activeTab === 'report') this.renderReports();
+                if (this.activeTab === 'fsa') this.renderFSA();
             },
 
             renderPatientSelector() {
                 const selector = document.getElementById('patient-selector');
-                if(!selector) return;
+                if (!selector) return;
                 selector.innerHTML = this.patients.map((p, i) => {
                     const name = p.details.name ? App.escapeHTML(p.details.name) : `Casualty ${i + 1}`;
                     return `<option value="${i}" ${i === this.currentPatientIndex ? 'selected' : ''}>${name}</option>`;
                 }).join('');
             },
 
+            // --- VITALS SECTION (With Draft Clearing, Edit & Delete) ---
+            renderVitalsSection() {
+                const d = this.data;
+                document.getElementById('vitals-inputs').innerHTML = this.vitalsConfig.map(v => `
+                    <div>
+                        <label class="input-label">${v.label}</label>
+                        <input type="text" class="input input-h10 font-bold" value="${App.escapeHTML(d.vitals[v.id] || '')}" oninput="App.updateData('vitals', '${v.id}', this.value)">
+                    </div>
+                `).join('');
+
+                const btn = document.getElementById('vitals-submit-btn');
+                if (btn) {
+                    if (d.vitals.id) {
+                        btn.innerHTML = `<span class="text-lg mr-1">💾</span> Update Vitals Log (${App.escapeHTML(d.vitals.timestamp)})`;
+                    } else {
+                        btn.innerHTML = `<span class="text-lg mr-1">🕒</span> Log Vitals (Time Stamp)`;
+                    }
+                }
+                this.renderVitalsLog();
+            },
+
+            saveVitalsLog() {
+                const draft = this.data.vitals;
+                const hasValue = this.vitalsConfig.some(v => draft[v.id] && draft[v.id].trim() !== '');
+                if (!hasValue) {
+                    alert("Please enter at least one vital sign before logging.");
+                    return;
+                }
+
+                const cleanData = {
+                    lor: draft.lor || '',
+                    hr: draft.hr || '',
+                    rr: draft.rr || '',
+                    temp: draft.temp || '',
+                    skin: draft.skin || '',
+                    pupils: draft.pupils || ''
+                };
+
+                if (draft.id) {
+                    const index = this.data.vitalsLog.findIndex(l => l.id === draft.id);
+                    if (index > -1) {
+                        this.data.vitalsLog[index] = {
+                            id: draft.id,
+                            timestamp: draft.timestamp,
+                            data: cleanData
+                        };
+                    }
+                } else {
+                    const now = new Date();
+                    const ts = now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
+                    this.data.vitalsLog.unshift({
+                        id: Date.now(),
+                        timestamp: ts,
+                        data: cleanData
+                    });
+                }
+
+                // Clear the input boxes after logging, matching OPQRST behavior
+                this.data.vitals = { id: null, timestamp: null, lor: '', hr: '', rr: '', skin: '', pupils: '', temp: '' };
+                this.saveData(true);
+                this.renderVitalsSection();
+            },
+
+            editVitals(id) {
+                const entry = this.data.vitalsLog.find(l => l.id === id);
+                if (entry) {
+                    this.data.vitals = {
+                        id: entry.id,
+                        timestamp: entry.timestamp,
+                        ...entry.data
+                    };
+                    this.saveData(true);
+                    this.renderVitalsSection();
+                }
+            },
+
+            deleteVitals(id) {
+                if (confirm("Delete this vitals log entry?")) {
+                    this.data.vitalsLog = this.data.vitalsLog.filter(l => l.id !== id);
+                    if (this.data.vitals.id === id) {
+                        this.data.vitals = { id: null, timestamp: null, lor: '', hr: '', rr: '', skin: '', pupils: '', temp: '' };
+                    }
+                    this.saveData(true);
+                    this.renderVitalsSection();
+                }
+            },
+
+            renderVitalsLog() {
+                const logDiv = document.getElementById('vitals-log-container');
+                if (!this.data.vitalsLog.length) {
+                    logDiv.innerHTML = '';
+                    return;
+                }
+                logDiv.innerHTML = `
+                    <div class="log-container mt-4">
+                        <div class="log-header">
+                            <span>Recorded Vitals Log</span>
+                            <span>${this.data.vitalsLog.length} Entries</span>
+                        </div>
+                        <div class="log-list">
+                            ${this.data.vitalsLog.map(entry => `
+                                <div class="log-entry">
+                                    <div class="flex justify-between items-start mb-2">
+                                        <div class="log-time" style="margin-bottom: 0;">[${App.escapeHTML(entry.timestamp)}]</div>
+                                        <div class="flex gap-3">
+                                            <button onclick="App.editVitals(${entry.id})" class="btn-reset" style="background: var(--slate-200); color: var(--slate-700);">✏️ Edit</button>
+                                            <button onclick="App.deleteVitals(${entry.id})" class="btn-reset" style="background: var(--red-100); color: var(--red-700);">🗑️ Del</button>
+                                        </div>
+                                    </div>
+                                    <div class="log-data">
+                                        <span><strong style="color: var(--brand-green);">LOR:</strong> ${App.escapeHTML(entry.data.lor) || '-'}</span>
+                                        <span><strong style="color: var(--brand-green);">HR:</strong> ${App.escapeHTML(entry.data.hr) || '-'}</span>
+                                        <span><strong style="color: var(--brand-green);">RR:</strong> ${App.escapeHTML(entry.data.rr) || '-'}</span>
+                                        <span><strong style="color: var(--brand-green);">Temp:</strong> ${App.escapeHTML(entry.data.temp) || '-'}</span>
+                                        <span><strong style="color: var(--brand-green);">Skin:</strong> ${App.escapeHTML(entry.data.skin) || '-'}</span>
+                                        <span><strong style="color: var(--brand-green);">Pupils:</strong> ${App.escapeHTML(entry.data.pupils) || '-'}</span>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+            },
+
+            // --- OPQRST SECTION ---
             renderOpqrst() {
                 const d = this.data;
                 const draft = d.opqrstDraft;
@@ -666,7 +876,7 @@
 
             updateOpqrstDraft(field, value) {
                 this.data.opqrstDraft[field] = value;
-                this.saveData(); 
+                this.saveData(true); 
             },
             
             saveOpqrstLog() {
@@ -684,7 +894,7 @@
                 }
                 
                 this.data.opqrstDraft = { id: null, location: '', o: '', p: '', q: '', r: '', s: '', t: '' };
-                this.saveData();
+                this.saveData(true);
                 this.renderOpqrst();
             },
 
@@ -692,62 +902,65 @@
                 const log = this.data.opqrstLog.find(l => l.id === id);
                 if (log) {
                     this.data.opqrstDraft = { ...log };
-                    this.saveData();
+                    this.saveData(true);
                     this.renderOpqrst();
                 }
             },
 
             deleteOpqrst(id) {
-                if(confirm("Delete this pain log?")) {
+                if (confirm("Delete this pain log?")) {
                     this.data.opqrstLog = this.data.opqrstLog.filter(l => l.id !== id);
-                    this.saveData();
+                    if (this.data.opqrstDraft.id === id) {
+                        this.data.opqrstDraft = { id: null, location: '', o: '', p: '', q: '', r: '', s: '', t: '' };
+                    }
+                    this.saveData(true);
                     this.renderOpqrst();
                 }
             },
 
             renderScene() {
-            const s = this.data.scene;
-            const toggleHtml = (id, label, field) => `
-                <label class="scene-item">
-                    <input type="checkbox" class="custom-checkbox" ${s[field] ? 'checked' : ''} onchange="App.updateData('scene', '${field}', this.checked)">
-                    <span class="scene-label ${s[field] ? 'checked' : ''}">${id}. ${label}</span>
-                </label>
-            `;
-            document.getElementById('scene-container').innerHTML = `
-                ${toggleHtml(1, 'I am No. 1. (Safety first! Check for danger.)', '1')}
-                <div class="card mb-2">
-                    <label class="flex items-center gap-3 ${s['2'] ? 'mb-2' : ''} cursor-pointer">
-                        <input type="checkbox" class="custom-checkbox" ${s['2'] ? 'checked' : ''} onchange="App.updateData('scene', '2', this.checked)">
-                        <span class="scene-label ${s['2'] ? 'checked' : ''}">2. What happened to you? (MOI)</span>
+                const s = this.data.scene;
+                const toggleHtml = (id, label, field) => `
+                    <label class="scene-item">
+                        <input type="checkbox" class="custom-checkbox" ${s[field] ? 'checked' : ''} onchange="App.updateData('scene', '${field}', this.checked)">
+                        <span class="scene-label ${s[field] ? 'checked' : ''}">${id}. ${label}</span>
                     </label>
-                    ${s['2'] ? `<input type="text" placeholder="Describe mechanism of injury..." class="input" value="${App.escapeHTML(s.moiDesc)}" oninput="App.updateData('scene', 'moiDesc', this.value)">` : ''}
-                </div>
-                ${toggleHtml(3, 'Not on me! (Don PPE.)', '3')}
-                ${toggleHtml(4, 'Any more? (Casualties.)', '4')}
-                ${toggleHtml(5, 'Dead or alive? (Status check.)', '5')}
-                
-                <div class="critical-box">
-                    <h3 class="critical-title">Critical 3Cs</h3>
-                    <div class="space-y-4">
-                        <label class="critical-row">
-                            <input type="checkbox" class="custom-checkbox" ${s.consent ? 'checked' : ''} onchange="App.updateData('scene', 'consent', this.checked)">
-                            <span>Consent</span>
+                `;
+                document.getElementById('scene-container').innerHTML = `
+                    ${toggleHtml(1, 'I am No. 1. (Safety first! Check for danger.)', '1')}
+                    <div class="card mb-2">
+                        <label class="flex items-center gap-3 ${s['2'] ? 'mb-2' : ''} cursor-pointer">
+                            <input type="checkbox" class="custom-checkbox" ${s['2'] ? 'checked' : ''} onchange="App.updateData('scene', '2', this.checked)">
+                            <span class="scene-label ${s['2'] ? 'checked' : ''}">2. What happened to you? (MOI)</span>
                         </label>
-                        <label class="critical-row">
-                            <input type="checkbox" class="custom-checkbox" ${s.cspine ? 'checked' : ''} onchange="App.updateData('scene', 'cspine', this.checked)">
-                            <span>Control (C-Spine and Situation)</span>
-                        </label>
-                        <div>
-                            <label class="critical-row ${s.complaint ? 'mb-2' : ''}">
-                                <input type="checkbox" class="custom-checkbox" ${s.complaint ? 'checked' : ''} onchange="App.updateData('scene', 'complaint', this.checked)">
-                                <span>Chief Complaint</span>
+                        ${s['2'] ? `<input type="text" placeholder="Describe mechanism of injury..." class="input" value="${App.escapeHTML(s.moiDesc)}" oninput="App.updateData('scene', 'moiDesc', this.value)">` : ''}
+                    </div>
+                    ${toggleHtml(3, 'Not on me! (Don PPE.)', '3')}
+                    ${toggleHtml(4, 'Any more? (Casualties.)', '4')}
+                    ${toggleHtml(5, 'Dead or alive? (Status check.)', '5')}
+                    
+                    <div class="critical-box">
+                        <h3 class="critical-title">Critical 3Cs</h3>
+                        <div class="space-y-4">
+                            <label class="critical-row">
+                                <input type="checkbox" class="custom-checkbox" ${s.consent ? 'checked' : ''} onchange="App.updateData('scene', 'consent', this.checked)">
+                                <span>Consent</span>
                             </label>
-                            ${s.complaint ? `<input type="text" placeholder="State chief complaint..." class="input" value="${App.escapeHTML(s.complaintDesc)}" oninput="App.updateData('scene', 'complaintDesc', this.value)">` : ''}
+                            <label class="critical-row">
+                                <input type="checkbox" class="custom-checkbox" ${s.cspine ? 'checked' : ''} onchange="App.updateData('scene', 'cspine', this.checked)">
+                                <span>Control (C-Spine and Situation)</span>
+                            </label>
+                            <div>
+                                <label class="critical-row ${s.complaint ? 'mb-2' : ''}">
+                                    <input type="checkbox" class="custom-checkbox" ${s.complaint ? 'checked' : ''} onchange="App.updateData('scene', 'complaint', this.checked)">
+                                    <span>Chief Complaint</span>
+                                </label>
+                                ${s.complaint ? `<input type="text" placeholder="State chief complaint..." class="input" value="${App.escapeHTML(s.complaintDesc)}" oninput="App.updateData('scene', 'complaintDesc', this.value)">` : ''}
+                            </div>
                         </div>
                     </div>
-                </div>
-            `;
-        },
+                `;
+            },
         
             renderHtt() {
                 const d = this.data;
@@ -763,14 +976,15 @@
             },
 
             setPrimaryStatus(key, status) {
-                this.updateData('primary', key, status);
+                const current = this.data.primary[key];
+                const nextStatus = (current === status) ? 'unchecked' : status;
+                this.updateData('primary', key, nextStatus);
                 this.renderPrimary();
                 
-                // UX Improvement: Auto-scroll to the critical alert if a "bad" condition is triggered
-                if (status === 'bad') {
+                // Auto-scroll to the critical alert if a "bad" condition is triggered
+                if (nextStatus === 'bad') {
                     setTimeout(() => {
                         const alertElement = document.getElementById('primary-alert');
-                        // Ensure the alert actually contains content before scrolling
                         if (alertElement && alertElement.innerHTML.trim() !== '') {
                             alertElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
                         }
@@ -790,7 +1004,7 @@
                     </div>
                 ` : '';
 
-                document.getElementById('primary-container').innerHTML = this.primaryGroups.map((group, idx) => {
+                document.getElementById('primary-container').innerHTML = this.primaryGroups.map((group) => {
                     const statuses = group.checks.map(c => this.data.primary[c.k]);
                     let badge = '';
                     if (statuses.includes('bad')) badge = '<span class="badge badge-critical">Critical</span>';
@@ -826,46 +1040,10 @@
             setInjury(part, value) {
                 if (value === "") delete this.data.injuries[part];
                 else this.data.injuries[part] = value;
-                this.saveData();
+                this.saveData(true);
             },
 
-            logVitals() {
-                const now = new Date();
-                const ts = now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
-                this.data.vitalsLog.unshift({ timestamp: ts, data: { ...this.data.vitals } });
-                this.saveData();
-                this.renderVitalsLog();
-            },
-
-            renderVitalsLog() {
-                const logDiv = document.getElementById('vitals-log-container');
-                if(!this.data.vitalsLog.length) { logDiv.innerHTML = ''; return; }
-                logDiv.innerHTML = `
-                    <div class="log-container mt-4">
-                        <div class="log-header">
-                            <span>Recorded Log</span>
-                            <span>${this.data.vitalsLog.length} Entries</span>
-                        </div>
-                        <div class="log-list">
-                            ${this.data.vitalsLog.map(entry => `
-                                <div class="log-entry">
-                                    <div class="log-time">[${App.escapeHTML(entry.timestamp)}]</div>
-                                    <div class="log-data">
-                                        <span>LOR: ${App.escapeHTML(entry.data.lor) || '-'}</span>
-                                        <span>HR: ${App.escapeHTML(entry.data.hr) || '-'}</span>
-                                        <span>RR: ${App.escapeHTML(entry.data.rr) || '-'}</span>
-                                        <span>Temp: ${App.escapeHTML(entry.data.temp) || '-'}</span>
-                                        <span>Skin: ${App.escapeHTML(entry.data.skin) || '-'}</span>
-                                        <span>Pupils: ${App.escapeHTML(entry.data.pupils) || '-'}</span>
-                                    </div>
-                                </div>
-                            `).join('')}
-                        </div>
-                    </div>
-                `;
-            },
-
-           renderSummary() {
+            renderSummary() {
                 const d = this.data;
                 const moiDerived = App.escapeHTML(d.scene.moiDesc) || 'No mechanism logged';
                 const injuriesDerived = Object.entries(d.injuries).length > 0 ? Object.entries(d.injuries).map(([k,v]) => `${App.escapeHTML(k)}: ${App.escapeHTML(v)}`).join('<br>') : "No injuries logged";
@@ -883,24 +1061,37 @@
 
             generateReportsText() {
                 const d = this.data;
-                const moiText = App.escapeHTML(d.scene.moiDesc) || (d.scene['2'] ? 'No mechanism logged' : 'Unknown');
+                const moiRaw = d.scene.moiDesc || (d.scene['2'] ? 'No mechanism logged' : 'Unknown');
                 const injArr = Object.entries(d.injuries);
                 
-                let vitalsSection = "";
+                // Determine latest vitals for Ops Room Brief (pulls latest logged entry, or falls back to unlogged draft inputs)
+                const latestVitals = d.vitalsLog.length > 0 ? d.vitalsLog[0].data : d.vitals;
+
+                // Plain-text Vitals History for Medical Report (oldest to newest, raw unescaped text)
+                let vitalsSectionPlain = "";
+                const hasUnloggedDraft = this.vitalsConfig.some(v => d.vitals[v.id] && d.vitals[v.id].trim() !== '');
                 if (d.vitalsLog.length > 0) {
-                    vitalsSection = [...d.vitalsLog].reverse().map(e => `[${App.escapeHTML(e.timestamp)}]\nLOR: ${App.escapeHTML(e.data.lor) || '-'} | HR: ${App.escapeHTML(e.data.hr) || '-'} | RR: ${App.escapeHTML(e.data.rr) || '-'}\nTemp: ${App.escapeHTML(e.data.temp) || '-'} | Skin: ${App.escapeHTML(e.data.skin) || '-'} | Pupils: ${App.escapeHTML(e.data.pupils) || '-'}`).join('\n\n');
+                    vitalsSectionPlain = [...d.vitalsLog].reverse().map(e => 
+                        `[${e.timestamp}]\nLOR: ${e.data.lor || '-'} | HR: ${e.data.hr || '-'} | RR: ${e.data.rr || '-'}\nTemp: ${e.data.temp || '-'} | Skin: ${e.data.skin || '-'} | Pupils: ${e.data.pupils || '-'}`
+                    ).join('\n\n');
+                } else if (hasUnloggedDraft) {
+                    vitalsSectionPlain = `[Current Unlogged]\nLOR: ${d.vitals.lor || '-'} | HR: ${d.vitals.hr || '-'} | RR: ${d.vitals.rr || '-'}\nTemp: ${d.vitals.temp || '-'} | Skin: ${d.vitals.skin || '-'} | Pupils: ${d.vitals.pupils || '-'}`;
                 } else {
-                    vitalsSection = `[Current]\nLOR: ${App.escapeHTML(d.vitals.lor) || '-'} | HR: ${App.escapeHTML(d.vitals.hr) || '-'} | RR: ${App.escapeHTML(d.vitals.rr) || '-'}\nTemp: ${App.escapeHTML(d.vitals.temp) || '-'} | Skin: ${App.escapeHTML(d.vitals.skin) || '-'} | Pupils: ${App.escapeHTML(d.vitals.pupils) || '-'}`;
+                    vitalsSectionPlain = "No vitals logged";
                 }
 
-                let injHtmlOps = injArr.length > 0 
+                // Plain-text OPQRST for Medical Report (raw unescaped text)
+                let opqrstSectionPlain = "No pain logged";
+                if (d.opqrstLog && d.opqrstLog.length > 0) {
+                    opqrstSectionPlain = d.opqrstLog.map(l => 
+                        `[${l.location || 'Unspecified Location'}]\nOnset: ${l.o || '-'}\nProvoking/Palliating: ${l.p || '-'}\nQuality: ${l.q || '-'}\nRegion: ${l.r || '-'}\nSeverity: ${l.s || '-'}\nTiming: ${l.t || '-'}`
+                    ).join('\n\n');
+                }
+
+                // HTML-escaped Injuries for Ops Room Brief display
+                const injHtmlOps = injArr.length > 0 
                     ? `<div class="border-left-yellow text-yellow">` + injArr.map(([k,v]) => `<div>${App.escapeHTML(k)}: ${App.escapeHTML(v)}</div>`).join('') + `</div>` 
                     : `<div class="border-left-yellow text-yellow italic">No injuries logged</div>`;
-                
-                let opqrstSection = "No pain logged";
-                if (d.opqrstLog && d.opqrstLog.length > 0) {
-                    opqrstSection = d.opqrstLog.map(l => `[${App.escapeHTML(l.location) || 'Unspecified Location'}]\nOnset: ${App.escapeHTML(l.o) || '-'}\nProvoking/Palliating: ${App.escapeHTML(l.p) || '-'}\nQuality: ${App.escapeHTML(l.q) || '-'}\nRegion: ${App.escapeHTML(l.r) || '-'}\nSeverity: ${App.escapeHTML(l.s) || '-'}\nTiming: ${App.escapeHTML(l.t) || '-'}`).join('\n\n');
-                }
 
                 const opsHtml = `
                     <div class="mb-4"><span>Ops Room, Ops Room. This is </span><span class="text-yellow font-bold">[Name]</span>. <br> I have a casualty. Standby to copy message.</div>
@@ -915,7 +1106,7 @@
                     <div class="mb-4">
                         <span class="font-bold">MOI:</span>
                         <div class="border-left-yellow text-yellow">
-                            <div>${moiText}</div>
+                            <div>${App.escapeHTML(moiRaw)}</div>
                             <div>C.C.: ${App.escapeHTML(d.scene.complaintDesc) || 'None'}</div>
                         </div>
                     </div>
@@ -928,7 +1119,7 @@
                     <div class="mb-4">
                         <span class="font-bold">Signs:</span>
                         <div class="border-left-yellow text-yellow">
-                            LOR ${App.escapeHTML(d.vitals.lor) || '-'}, HR ${App.escapeHTML(d.vitals.hr) || '-'}, RR ${App.escapeHTML(d.vitals.rr) || '-'}
+                            LOR ${App.escapeHTML(latestVitals.lor) || '-'}, HR ${App.escapeHTML(latestVitals.hr) || '-'}, RR ${App.escapeHTML(latestVitals.rr) || '-'}
                         </div>
                     </div>
                     
@@ -945,10 +1136,10 @@
                     <div class="mt-4">Over.</div>
                 `;
 
-                // Unescaped for TXT file generation - plain text naturally prevents HTML execution
-                const opsTextOnly = `Ops Room, Ops Room, this is [Name]. \n I have a casualty. Standby to copy message. \n\nDetails:\n${d.details.name || 'Unknown'}, ${d.details.sex || '?'}/${d.details.age || '?'} | \nLoc: ${d.details.loc || '?'}\n\nMOI:\n${d.scene.moiDesc || 'Unknown'}\nC.C.: ${d.scene.complaintDesc || 'None'}\n\nInjuries:\n${injArr.length > 0 ? injArr.map(([k,v]) => `${k}: ${v}`).join('\n') : "None logged"}\n\nSigns:\nLOR ${d.vitals.lor || '-'}, HR ${d.vitals.hr || '-'}, RR ${d.vitals.rr || '-'}\n\nTreatment:\n${(d.summary.treatment || 'None').trim()}\n\nRequests:\n${(d.summary.reqs || 'None').trim()}\n\nOver.`;
+                // Raw plain-text strings for clipboard & .txt download (no HTML escaping needed)
+                const opsTextOnly = `Ops Room, Ops Room, this is [Name]. \n I have a casualty. Standby to copy message. \n\nDetails:\n${d.details.name || 'Unknown'}, ${d.details.sex || '?'}/${d.details.age || '?'} | \nLoc: ${d.details.loc || '?'}\n\nMOI:\n${moiRaw}\nC.C.: ${d.scene.complaintDesc || 'None'}\n\nInjuries:\n${injArr.length > 0 ? injArr.map(([k,v]) => `${k}: ${v}`).join('\n') : "None logged"}\n\nSigns:\nLOR ${latestVitals.lor || '-'}, HR ${latestVitals.hr || '-'}, RR ${latestVitals.rr || '-'}\n\nTreatment:\n${(d.summary.treatment || 'None').trim()}\n\nRequests:\n${(d.summary.reqs || 'None').trim()}\n\nOver.`;
 
-                const fullHandover = `Name: ${d.details.name || 'Unknown'} (${d.details.sex || '?'}/${d.details.age || '?'})\nLocation: ${d.details.loc || 'Unknown'}\nMechanism: ${d.scene.moiDesc || 'Unknown'}\nChief Complaint: ${d.scene.complaintDesc || 'None'}\n\nINJURIES:\n${injArr.length > 0 ? injArr.map(([k,v]) => `- ${k}: ${v}`).join('\n') : "No injuries logged"}\n\nVITALS HISTORY:\n${vitalsSection.replace(/<[^>]*>?/gm, '')}\n\nPAIN (OPQRST):\n${opqrstSection.replace(/<[^>]*>?/gm, '')}\n\nHISTORY (SAMPLE):\nSymptoms: ${d.history.symptoms}\nAllergies: ${d.history.allergies}\nMedication/Intoxication: ${d.history.meds}\nPertinent Medical History: ${d.history.past}\nLast Intake/Output: ${d.history.last}\nEvents: ${d.history.events}\n\nTREATMENT:\n${(d.summary.treatment || 'None').trim()}\n\nEXPECTED ISSUES:\n${(d.summary.problems || 'None listed').trim()}\n\nREQUESTS:\n${(d.summary.reqs || 'None').trim()}`;
+                const fullHandover = `Name: ${d.details.name || 'Unknown'} (${d.details.sex || '?'}/${d.details.age || '?'})\nLocation: ${d.details.loc || 'Unknown'}\nMechanism: ${moiRaw}\nChief Complaint: ${d.scene.complaintDesc || 'None'}\n\nINJURIES:\n${injArr.length > 0 ? injArr.map(([k,v]) => `- ${k}: ${v}`).join('\n') : "No injuries logged"}\n\nVITALS HISTORY:\n${vitalsSectionPlain}\n\nPAIN (OPQRST):\n${opqrstSectionPlain}\n\nHISTORY (SAMPLE):\nSymptoms: ${d.history.symptoms}\nAllergies: ${d.history.allergies}\nMedication/Intoxication: ${d.history.meds}\nPertinent Medical History: ${d.history.past}\nLast Intake/Output: ${d.history.last}\nEvents: ${d.history.events}\n\nTREATMENT:\n${(d.summary.treatment || 'None').trim()}\n\nEXPECTED ISSUES:\n${(d.summary.problems || 'None listed').trim()}\n\nREQUESTS:\n${(d.summary.reqs || 'None').trim()}`;
 
                 return { opsHtml, opsTextOnly, fullHandover };
             },
@@ -993,14 +1184,17 @@
                 URL.revokeObjectURL(url);
             },
 
-            // --- FSA WIZARD ---
+            // --- FSA WIZARD (Saved Per Casualty) ---
             setFSAStep(stepTarget) {
-                this.fsaStep = stepTarget;
+                this.data.fsaStep = stepTarget;
+                this.saveData(true);
                 this.renderFSA();
             },
 
             renderFSA() {
                 const container = document.getElementById('fsa-wizard-container');
+                const step = typeof this.data.fsaStep !== 'undefined' ? this.data.fsaStep : 0;
+
                 const renderResult = (title, message, colorClass, icon) => `
                     <div class="fsa-result ${colorClass}">
                         <div class="mb-6"><span style="font-size: 4rem;">${icon}</span></div>
@@ -1012,15 +1206,15 @@
                     </div>
                 `;
 
-                if (typeof this.fsaStep === 'string') {
-                    if (this.fsaStep === 'complete_pas') container.innerHTML = renderResult('Complete PAS First', 'Do not proceed to FSA until standard assessment is done.', 'bg-amber-50', '⚠️');
-                    if (this.fsaStep === 'no_fsa_needed') container.innerHTML = renderResult('FSA Not Required', 'Negative MOI. Continue standard care.', 'bg-blue-50', '✅');
-                    if (this.fsaStep === 'treat_spinal') container.innerHTML = renderResult('Treat as Spinal', 'Criteria not met. Maintain spinal immobilization and Evacuate.', 'bg-red-50', '⚠️');
-                    if (this.fsaStep === 'release') container.innerHTML = renderResult('Clear Spine', 'All FSA criteria passed. Safe to discontinue spinal protocols.', 'bg-green-50', '✅');
+                if (typeof step === 'string') {
+                    if (step === 'complete_pas') container.innerHTML = renderResult('Complete PAS First', 'Do not proceed to FSA until standard assessment is done.', 'bg-amber-50', '⚠️');
+                    if (step === 'no_fsa_needed') container.innerHTML = renderResult('FSA Not Required', 'Negative MOI. Continue standard care.', 'bg-blue-50', '✅');
+                    if (step === 'treat_spinal') container.innerHTML = renderResult('Treat as Spinal', 'Criteria not met. Maintain spinal immobilization and Evacuate.', 'bg-red-50', '⚠️');
+                    if (step === 'release') container.innerHTML = renderResult('Clear Spine', 'All FSA criteria passed. Safe to discontinue spinal protocols.', 'bg-green-50', '✅');
                     return;
                 }
 
-                const currentStep = this.fsaStepsConfig[this.fsaStep];
+                const currentStep = this.fsaStepsConfig[step];
                 container.innerHTML = `
                     <div>
                         <div class="section-header">
@@ -1028,11 +1222,11 @@
                             <h2>Spinal Assessment</h2>
                         </div>
                         <div class="fsa-progress">
-                            ${this.fsaStepsConfig.map((_, i) => `<div class="fsa-bar ${i <= this.fsaStep ? 'active' : ''}"></div>`).join('')}
+                            ${this.fsaStepsConfig.map((_, i) => `<div class="fsa-bar ${i <= step ? 'active' : ''}"></div>`).join('')}
                         </div>
                         <div class="fsa-card">
                             <div class="mb-6">
-                                <h3 class="fsa-step-info">Step ${this.fsaStep + 1}: ${currentStep.title}</h3>
+                                <h3 class="fsa-step-info">Step ${step + 1}: ${currentStep.title}</h3>
                                 <h2 class="fsa-question">${currentStep.question}</h2>
                                 <div class="mb-4">
                                     ${currentStep.description ? `<p class="fsa-desc">${currentStep.description}</p>` : ''}
@@ -1063,14 +1257,14 @@
 
         window.onload = () => App.init();
     </script>
-<script>
-    if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-            navigator.serviceWorker.register('sw.js')
-                .then(registration => console.log('ServiceWorker registered'))
-                .catch(err => console.log('ServiceWorker registration failed: ', err));
-        });
-    }
-</script>
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('sw.js')
+                    .then(registration => console.log('ServiceWorker registered'))
+                    .catch(err => console.log('ServiceWorker registration failed: ', err));
+            });
+        }
+    </script>
 </body>
 </html>
