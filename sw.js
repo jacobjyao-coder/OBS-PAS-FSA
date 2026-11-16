@@ -3,10 +3,9 @@ const ASSETS_TO_CACHE = [
     './',
     './index.html',
     './manifest.json',
-    './icon-512.png' // Make sure your icon is explicitly cached for offline loading
+    './icon-512.png'
 ];
 
-// Install Event: Cache core assets immediately
 self.addEventListener('install', event => {
     event.waitUntil(
         caches.open(CACHE_NAME).then(cache => {
@@ -15,7 +14,6 @@ self.addEventListener('install', event => {
     );
 });
 
-// Activate Event: Clean up old caches and take control immediately
 self.addEventListener('activate', event => {
     event.waitUntil(
         caches.keys().then(cacheNames => {
@@ -30,31 +28,22 @@ self.addEventListener('activate', event => {
     );
 });
 
-// Fetch Event: Network-First for Navigation (HTML), Cache-First for Assets
 self.addEventListener('fetch', event => {
-    // If the browser is requesting a webpage (index.html)
-    if (event.request.mode === 'navigate') {
-        event.respondWith(
-            fetch(event.request)
-                .then(networkResponse => {
-                    // Save the newest version from GitHub/Netlify to the cache
-                    return caches.open(CACHE_NAME).then(cache => {
-                        cache.put(event.request, networkResponse.clone());
-                        return networkResponse;
-                    });
-                })
-                .catch(() => {
-                    // If offline, serve the last saved version from cache
-                    return caches.match(event.request);
-                })
-        );
-        return;
-    }
+    if (event.request.method !== 'GET') return;
 
-    // For everything else (images, manifest), try the cache first, then the network
     event.respondWith(
-        caches.match(event.request).then(cachedResponse => {
-            return cachedResponse || fetch(event.request);
-        })
+        fetch(event.request)
+            .then(networkResponse => {
+                if (networkResponse && networkResponse.status === 200) {
+                    const responseClone = networkResponse.clone();
+                    caches.open(CACHE_NAME).then(cache => {
+                        cache.put(event.request, responseClone);
+                    });
+                }
+                return networkResponse;
+            })
+            .catch(() => {
+                return caches.match(event.request);
+            })
     );
 });
