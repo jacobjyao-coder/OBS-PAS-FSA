@@ -1,15 +1,19 @@
 {
   "name": "OBS MST PAS + FSA",
   "short_name": "OBS PAS",
-  "start_url": "./",
+  "description": "Wilderness Patient Assessment System and Focused Spinal Assessment Tool.",
+  "start_url": "./index.html",
+  "scope": "./",
   "display": "standalone",
+  "orientation": "portrait",
   "background_color": "#f1f5f9",
   "theme_color": "#545e28",
   "icons": [
     {
       "src": "icon-512.png",
       "sizes": "512x512",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any"
     }
   ]
 }
